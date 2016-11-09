@@ -1,0 +1,490 @@
+package com.sy.appletree.preparelessons;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+import com.sy.appletree.R;
+import com.sy.appletree.views.MyGridView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * 新增课程
+ */
+
+public class AddLessonsActivity extends AppCompatActivity {
+
+    @Bind(R.id.base_left)
+    RelativeLayout mBaseLeft;
+    @Bind(R.id.base_right)
+    RelativeLayout mBaseRight;
+    @Bind(R.id.lesson_edit)
+    EditText mLessonEdit;
+    @Bind(R.id.lesson_textbook)
+    MyGridView mLessonTextbook;
+    @Bind(R.id.lesson_subject)
+    MyGridView mLessonSubject;
+    @Bind(R.id.lesson_grade)
+    MyGridView mLessonGrade;
+    @Bind(R.id.lesson_save)
+    RelativeLayout mLessonSave;
+
+    private boolean isCustom = false;
+
+    private List<String> mListTextBooks = new ArrayList<>();
+    private List<String> mListSubject = new ArrayList<>();
+    private List<String> mListGrade = new ArrayList<>();
+    private LessonAdapter mLessonAdapter;
+    private SubjectAdapter mSubjectAdapter;
+    private GradeAdapter mGradeAdapter;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_lessons);
+        ButterKnife.bind(this);
+
+        for (int i = 0; i < 7; i++) {
+            mListTextBooks.add("教材" + i);
+            mListSubject.add("科目" + i);
+            mListGrade.add("年级" + i);
+        }
+        mListTextBooks.add("自定义版");
+        mLessonAdapter = new LessonAdapter(mListTextBooks);
+        mLessonTextbook.setAdapter(mLessonAdapter);
+
+        mSubjectAdapter = new SubjectAdapter(mListSubject);
+        mLessonSubject.setAdapter(mSubjectAdapter);
+
+        mGradeAdapter = new GradeAdapter(mListGrade);
+        mLessonGrade.setAdapter(mGradeAdapter);
+
+    }
+
+    @OnClick({R.id.base_left, R.id.base_right, R.id.lesson_save})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.base_left:
+                finish();
+                break;
+            case R.id.base_right:
+                break;
+            case R.id.lesson_save://保存
+                whetherEmpty();
+                break;
+        }
+    }
+
+    /**
+     * 判断课程，教材等空值
+     */
+    private void whetherEmpty() {
+        boolean empty = TextUtils.isEmpty(mLessonEdit.getText().toString().trim());
+        if (empty) {
+            Toast.makeText(AddLessonsActivity.this, "请输入课程名称", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        boolean empty1 = mMap_Lesson.isEmpty();
+        if (empty1) {
+            Toast.makeText(AddLessonsActivity.this, "请选择教材", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isCustom) {//自定义
+            if (mList_Subjects.isEmpty()) {
+                Toast.makeText(AddLessonsActivity.this, "请选择科目", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                if (mList_Grades.isEmpty()) {
+                    Toast.makeText(AddLessonsActivity.this, "请选择适用年级", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    StringBuffer sub=new StringBuffer();
+                    List list = deleteEmpty(mList_Subjects);
+                    for (int i = 0; i < list.size(); i++) {
+                        sub.append(list.get(i));
+                    }
+                    StringBuffer grade =new StringBuffer();
+                    List list1 = deleteEmpty(mList_Grades);
+                    for (int i = 0; i < list1.size(); i++) {
+                        grade.append(list1.get(i));
+                    }
+                    //多选
+                    Toast.makeText(AddLessonsActivity.this, "课程名：" + mLessonEdit.getText().toString() + "---教材：" + mMap_Lesson.get("lesson") + "----科目：" + sub.toString() + "---年级：" + grade.toString(),
+                            Toast.LENGTH_LONG).show();//输出结果
+
+                    Intent intent=new Intent(AddLessonsActivity.this,BeiKeActivity.class);
+                    intent.putExtra("yuLan",false);
+                    intent.putExtra("单选",false);
+                    intent.putExtra("科目",sub.toString());
+                    intent.putExtra("教材",mMap_Lesson.get("lesson"));
+                    intent.putExtra("年级", grade.toString());
+                    intent.putExtra("课程",mLessonEdit.getText().toString());
+                    startActivity(intent);
+                }
+            }
+        } else {
+            if (mMap_Subject.isEmpty()) {
+                Toast.makeText(AddLessonsActivity.this, "请选择科目", Toast.LENGTH_SHORT).show();
+                return;
+            } else {
+                if (mMap_Grade.isEmpty()) {
+                    Toast.makeText(AddLessonsActivity.this, "请选择适用年级", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    Toast.makeText(AddLessonsActivity.this, "课程名：" + mLessonEdit.getText().toString() + "---教材：" + mMap_Lesson.get("lesson") + "----科目：" + mMap_Subject.get("subject") + "----年级：" + mMap_Grade.get("grade"),
+                            Toast.LENGTH_LONG).show();//输出结果
+
+                    //单选
+                    Intent intent=new Intent(AddLessonsActivity.this,BeiKeActivity.class);
+                    intent.putExtra("单选",true);
+                    intent.putExtra("科目",mMap_Subject.get("subject"));
+                    intent.putExtra("教材",mMap_Lesson.get("lesson"));
+                    intent.putExtra("年级", mMap_Grade.get("grade"));
+                    intent.putExtra("课程",mLessonEdit.getText().toString());
+                    startActivity(intent);
+                }
+            }
+        }
+    }
+
+    /**
+     * 去除空值
+     */
+    private List deleteEmpty(List list) {
+
+        if (list.size()>1){
+            for (int i = 0; i < list.size() - 1; i++) {
+
+                for (int j = list.size() - 1; j > i; j--) {
+                    if (list.get(j).equals(list.get(i))) {
+                        list.remove(j);
+                    }
+                }
+            }
+        }
+        return list;
+    }
+
+    private int ClickPosition = -1;
+    private Map<String, String> mMap_Lesson = new HashMap<>();
+
+    /**
+     * 教材的适配器
+     */
+    public class LessonAdapter extends BaseAdapter {
+
+        private List<String> mList;
+
+        public LessonAdapter(List<String> list) {
+            mList = list;
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            ViewHolder viewHolder;
+
+            if (convertView == null) {
+                viewHolder = new ViewHolder();
+                convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_item, parent, false);
+                viewHolder.mCheckBox = (CheckBox) convertView.findViewById(R.id.lesson_check);
+                convertView.setTag(viewHolder);
+
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+            if (mList.size() != 0) {
+                viewHolder.mCheckBox.setText(mList.get(position));
+            }
+            if (ClickPosition == position) {
+                viewHolder.mCheckBox.setChecked(true);
+            } else {
+                viewHolder.mCheckBox.setChecked(false);
+            }
+            viewHolder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ClickPosition = position;
+                    notifyDataSetChanged();
+                    if (position == mListTextBooks.size() - 1) {
+                        isCustom = true;
+                        mList_Subjects.clear();
+                        mList_Grades.clear();
+                        mSubjectAdapter.notifyDataSetChanged();
+                        mGradeAdapter.notifyDataSetChanged();
+
+                    } else {
+                        isCustom = false;
+                        mMap_Subject.clear();
+                        mMap_Grade.clear();
+                        mSubjectAdapter.notifyDataSetChanged();
+                        mGradeAdapter.notifyDataSetChanged();
+                    }
+                    //记录选中的教材
+                    mMap_Lesson.put("lesson", mListTextBooks.get(position));
+                }
+            });
+
+
+            return convertView;
+        }
+
+        class ViewHolder {
+            CheckBox mCheckBox;
+        }
+    }
+
+    /**
+     * 科目的适配器
+     */
+    private Map<String, String> mMap_Subject = new HashMap<>();//单选记录器
+    private List<String> mList_Subjects = new ArrayList<>();//多选记录器
+
+    private int ClickPosition1 = -1;
+
+    public class SubjectAdapter extends BaseAdapter {
+
+        private List<String> mList;
+
+        public SubjectAdapter(List<String> list) {
+            mList = list;
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            if (isCustom) {
+
+                ViewHolder viewHolder;
+                if (convertView == null) {
+                    viewHolder = new ViewHolder();
+                    convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_item, parent, false);
+                    viewHolder.mCheckBox = (CheckBox) convertView.findViewById(R.id.lesson_check);
+                    convertView.setTag(viewHolder);
+
+                } else {
+                    viewHolder = (ViewHolder) convertView.getTag();
+                }
+                if (mList.size() != 0) {
+                    viewHolder.mCheckBox.setText(mList.get(position));
+                }
+                boolean checked = viewHolder.mCheckBox.isChecked();
+                if (checked) {
+                    mList_Subjects.add(mListSubject.get(position));
+                }
+                viewHolder.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (mList_Subjects.size() != 0) {
+                            for (int i = 0; i < mList_Subjects.size(); i++) {
+                                if (mList_Subjects.get(i).equals(buttonView.getText())) {
+                                    if (!isChecked) {
+                                        mList_Subjects.remove(i);
+                                    }
+                                }
+                            }
+                        } else {
+                            if (isChecked) {
+                                mList_Subjects.add(mListSubject.get(position));
+                            }
+                        }
+
+                    }
+                });
+            } else {
+
+                ViewHolder viewHolder;
+                if (convertView == null) {
+                    viewHolder = new ViewHolder();
+                    convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_item, parent, false);
+                    viewHolder.mCheckBox = (CheckBox) convertView.findViewById(R.id.lesson_check);
+                    convertView.setTag(viewHolder);
+
+                } else {
+                    viewHolder = (ViewHolder) convertView.getTag();
+                }
+                if (mList.size() != 0) {
+                    viewHolder.mCheckBox.setText(mList.get(position));
+                }
+                if (ClickPosition1 == position) {
+                    viewHolder.mCheckBox.setChecked(true);
+                    mMap_Subject.put("subject", mListSubject.get(position));
+                } else {
+                    viewHolder.mCheckBox.setChecked(false);
+                }
+                viewHolder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ClickPosition1 = position;
+                        notifyDataSetChanged();
+
+                    }
+                });
+            }
+
+            return convertView;
+        }
+
+        class ViewHolder {
+            CheckBox mCheckBox;
+        }
+    }
+
+    /**
+     * 年级的适配器
+     */
+    private Map<String, String> mMap_Grade = new HashMap<>();
+    private List<String> mList_Grades = new ArrayList<>();//多选记录器
+    private int ClickPosition2 = -1;
+
+    public class GradeAdapter extends BaseAdapter {
+
+        private List<String> mList;
+
+        public GradeAdapter(List<String> list) {
+            mList = list;
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+
+            if (isCustom) {
+
+                ViewHolder viewHolder;
+                if (convertView == null) {
+                    viewHolder = new ViewHolder();
+                    convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_item, parent, false);
+                    viewHolder.mCheckBox = (CheckBox) convertView.findViewById(R.id.lesson_check);
+                    convertView.setTag(viewHolder);
+
+                } else {
+                    viewHolder = (ViewHolder) convertView.getTag();
+                }
+                if (mList.size() != 0) {
+                    viewHolder.mCheckBox.setText(mList.get(position));
+                }
+                boolean checked = viewHolder.mCheckBox.isChecked();
+
+                if (checked) {
+                    mList_Grades.add(mListGrade.get(position));
+                }
+                viewHolder.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (mList_Grades.size() != 0) {
+                            for (int i = 0; i < mList_Grades.size(); i++) {
+                                if (mList_Grades.get(i).equals(buttonView.getText())) {
+                                    if (!isChecked) {
+                                        mList_Grades.remove(i);
+                                    }
+                                }
+                            }
+                        } else {
+                            if (isChecked) {
+                                mList_Grades.add(mListGrade.get(position));
+                            }
+                        }
+                    }
+                });
+            } else {
+
+                ViewHolder viewHolder;
+                if (convertView == null) {
+                    viewHolder = new ViewHolder();
+                    convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_item, parent, false);
+                    viewHolder.mCheckBox = (CheckBox) convertView.findViewById(R.id.lesson_check);
+                    convertView.setTag(viewHolder);
+
+                } else {
+                    viewHolder = (ViewHolder) convertView.getTag();
+                }
+                if (mList.size() != 0) {
+                    viewHolder.mCheckBox.setText(mList.get(position));
+                }
+                if (ClickPosition2 == position) {
+                    viewHolder.mCheckBox.setChecked(true);
+                    mMap_Grade.put("grade", mListGrade.get(position));
+                } else {
+                    viewHolder.mCheckBox.setChecked(false);
+                }
+                viewHolder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ClickPosition2 = position;
+                        notifyDataSetChanged();
+                    }
+                });
+            }
+
+
+            return convertView;
+        }
+
+        class ViewHolder {
+            CheckBox mCheckBox;
+        }
+    }
+
+}

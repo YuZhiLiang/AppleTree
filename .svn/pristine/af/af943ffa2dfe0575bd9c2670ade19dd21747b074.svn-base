@@ -1,0 +1,41 @@
+package com.sy.appletree.myclasses;
+
+import android.os.Bundle;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.RelativeLayout;
+
+import com.sy.appletree.R;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+public class ClassManegerActivity extends AppCompatActivity {
+
+    @Bind(R.id.base_left)
+    RelativeLayout mBaseLeft;
+    @Bind(R.id.base_right)
+    RelativeLayout mBaseRight;
+    @Bind(R.id.classmanager_pager)
+    ViewPager mClassmanagerPager;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_class_maneger);
+        ButterKnife.bind(this);
+    }
+
+    @OnClick({R.id.base_left, R.id.base_right})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.base_left:
+                finish();
+                break;
+            case R.id.base_right:
+                break;
+        }
+    }
+}

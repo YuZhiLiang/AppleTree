@@ -1,0 +1,146 @@
+package com.sy.appletree.mygroup;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+
+import com.sy.appletree.R;
+import com.sy.appletree.adapter.GroupPagerAdapter;
+import com.sy.appletree.fragment.ClassManagerFragment;
+import com.sy.appletree.fragment.GroupMannerFragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+public class GroupMannagerActivity extends AppCompatActivity {
+
+    @Bind(R.id.base_left)
+    RelativeLayout mBaseLeft;
+    @Bind(R.id.base_right)
+    RelativeLayout mBaseRight;
+    @Bind(R.id.groupmanager_pager)
+    ViewPager mGroupmanagerPager;
+    @Bind(R.id.bottom_id)
+    LinearLayout mLinearLayout;
+    @Bind(R.id.group_grid)
+    GridView mGroupGrid;
+    @Bind(R.id.group_wancheng)
+    Button mGroupWancheng;
+    @Bind(R.id.viewpager_box)
+    LinearLayout mViewpagerBox;
+
+
+    //小圆点相关
+    private LinearLayout.LayoutParams params;
+
+    private List<Fragment> mFragmentList = new ArrayList<>();
+    private GroupPagerAdapter mGroupPagerAdapter;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_group_mannager);
+        ButterKnife.bind(this);
+
+        initFragment();
+
+
+        //获取屏幕当前密度系数
+        float density = getResources().getDisplayMetrics().density;
+        //将px转成dp
+        params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins((int) (3 * density), 0, (int) (3 * density), 0);
+        addDotView(mFragmentList.size());
+        mGroupPagerAdapter=new GroupPagerAdapter(getSupportFragmentManager(), mFragmentList);
+        mGroupmanagerPager.setAdapter(mGroupPagerAdapter);
+
+        //Viewpager 的 父View收到的事件 传递给 viewpager
+        mViewpagerBox.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return mGroupmanagerPager.dispatchTouchEvent(event);
+            }
+        });
+
+        /**
+         * 加小圆点
+         */
+        mGroupmanagerPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                for (int i = 0; i < mFragmentList.size(); i++) {
+                    ImageView dotImageView = (ImageView) mLinearLayout.getChildAt(i);
+                    if (i == position) {
+                        dotImageView.setImageResource(R.drawable.shape_fullcricle);
+                    } else {
+                        dotImageView.setImageResource(R.drawable.shape_whitecricle);
+                    }
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+    }
+
+    private void initFragment() {
+        for (int i = 0; i < 5; i++) {
+            mFragmentList.add(setPager());
+        }
+    }
+    private GroupMannerFragment setPager() {
+        GroupMannerFragment groupMannerFragment = new GroupMannerFragment();
+        Bundle bundle=new Bundle();
+
+        groupMannerFragment.setArguments(bundle);
+        return groupMannerFragment;
+    }
+
+    @OnClick({R.id.base_left, R.id.base_right})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.base_left://退出
+                finish();
+                break;
+            case R.id.base_right://选班
+
+                break;
+        }
+    }
+
+
+    private void addDotView(int size) {
+        ImageView dotImageView;
+        //根据视图个数添加导航小图标
+        for (int i = 0; i < size; i++) {
+            dotImageView = new ImageView(this);
+            dotImageView.setTag(i);
+            if (i == 0) {
+                dotImageView.setImageResource(R.drawable.shape_fullcricle);
+            } else {
+                dotImageView.setImageResource(R.drawable.shape_whitecricle);
+            }
+            //将小图标添加到导航布局中
+            mLinearLayout.addView(dotImageView, params);
+        }
+    }
+}

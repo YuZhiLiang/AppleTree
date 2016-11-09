@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="group_people_num" type="id"/>
+    <item name="group_name" type="id"/>
+    <item name="group_set" type="id"/>
+    <item name="group_content_view" type="id"/>
+    <item name="groupNo" type="id"/>
+    <item name="group_detail" type="id"/>
+    <item name="radar_view" type="id"/>
+    <item name="group_or_personal_evaluate" type="id"/>
+    <item name="group_or_personal" type="id"/>
+    <item name="inner_linear_layout_of_scroll" type="id"/>
+    <item name="bottom_left_indicator" type="id"/>
+    <item name="bottom_right_indicator" type="id"/>
+</resources>

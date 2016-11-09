@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.sy.appletree.login_register.ChoosePlaceActivity">
+
+    <com.handmark.pulltorefresh.library.PullToRefreshListView
+        android:id="@+id/place_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/place_btn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/chooseCityButton"
+            android:textColor="@color/chooseCityTextColor"
+            android:textSize="20sp"/>
+    </LinearLayout>
+</LinearLayout>

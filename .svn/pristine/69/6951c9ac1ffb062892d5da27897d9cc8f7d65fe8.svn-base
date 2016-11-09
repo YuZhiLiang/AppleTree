@@ -1,0 +1,196 @@
+package com.sy.appletree.login_register;
+
+
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
+import com.sy.appletree.R;
+import com.sy.appletree.base.BaseActivity;
+import com.sy.appletree.myclasses.CreateAndAddClassesActivity;
+import com.sy.appletree.utils.Const;
+import com.sy.appletree.utils.SharePreferenceUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 选择地区
+ */
+public class ChoosePlaceActivity extends BaseActivity {
+    private PullToRefreshListView mListView;
+    private Button mButton_btn;
+    private List<String> mList = new ArrayList<>();
+    private PlaceChooseAdapter mPlaceChooseAdapter;
+    private int ClickPosition = -1;
+    private int tag;
+
+    @Override
+    protected void findViews() {
+        Intent intent = getIntent();
+        tag = intent.getIntExtra("tag", 0);
+        String city = intent.getStringExtra("city");
+        setTitleText("选择所在机构", true);
+        setPlaceSearchVillable(true);
+        if (tag == 1) {//标识从我的班级中跳转过来的
+            String param = (String) SharePreferenceUtils.getParam(ChoosePlaceActivity.this, Const.CACHE_CITY, "");
+            setBasePlaceCityText(param);
+        } else {//登陆普通流程过来
+            setBasePlaceCityText(city);
+        }
+
+        mListView = (PullToRefreshListView) findViewById(R.id.place_list);
+        mButton_btn = (Button) findViewById(R.id.place_btn);
+
+
+        mList.add("深圳小学1");
+        mList.add("深圳小学2");
+        mList.add("深圳小学3");
+        mList.add("深圳小学4");
+        mList.add("深圳小学5");
+
+
+        mPlaceChooseAdapter = new PlaceChooseAdapter(this, mList);
+        mListView.setAdapter(mPlaceChooseAdapter);
+    }
+
+    @Override
+    protected void getData() {
+
+    }
+
+    @Override
+    protected void setListener() {
+
+        //地区搜索按钮
+        setBasePlaceSearchListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        //选择地区确认按钮
+        mButton_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (tag == 1) {//去创建班级流程页面
+                    Intent intent = new Intent(ChoosePlaceActivity.this, CreateAndAddClassesActivity.class);
+                    startActivity(intent);
+                } else {//注册的流程
+                    Intent intent = new Intent(ChoosePlaceActivity.this, RegisterSuccessActivity.class);
+
+                    startActivity(intent);
+                }
+
+            }
+        });
+        //重新选择城市按钮
+        setOnReSelcectCityListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ChoosePlaceActivity.this, ChooseCityActivity.class);
+                intent.putExtra(Const.PLACETOCITY, 1);
+                startActivityForResult(intent, Const.CPTAG);
+
+            }
+        });
+    }
+
+    /**
+     * 接受回掉页面数据
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Const.CPTAG && resultCode == Const.PCTAG) {
+            String city = data.getStringExtra("city");
+            setBasePlaceCityText(city);
+        }
+    }
+
+    @Override
+    protected int setContentView() {
+        return R.layout.activity_choose_place;
+    }
+
+    /**
+     * 地区列表适配器
+     */
+    public class PlaceChooseAdapter extends BaseAdapter {
+        private Context mContext;
+        private List<String> mList;
+
+        public PlaceChooseAdapter(Context context, List<String> list) {
+            mContext = context;
+            mList = list;
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            ViewHolder viewHolder;
+            if (convertView == null) {
+                viewHolder = new ViewHolder();
+                convertView = LayoutInflater.from(mContext).inflate(R.layout.place_item, null);
+                viewHolder.mCheckBox = (RadioButton) convertView.findViewById(R.id.place_check);
+                viewHolder.mRadioGroup= (RadioGroup) convertView.findViewById(R.id.place_radio);
+                convertView.setTag(viewHolder);
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+            if (mList.size() != 0) {
+                viewHolder.mCheckBox.setText(mList.get(position));
+                viewHolder.mRadioGroup.clearCheck();
+            }
+            if (ClickPosition == position) {//条目为刚才点击的条目
+
+                viewHolder.mCheckBox.setChecked(true);
+            } else {
+                viewHolder.mCheckBox.setChecked(false);
+            }
+            viewHolder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ClickPosition = position;
+                    notifyDataSetChanged();
+                    Log.e("刷新执行了", position + "");
+                }
+            });
+
+
+            return convertView;
+        }
+
+        class ViewHolder {
+            RadioButton mCheckBox;
+            RadioGroup mRadioGroup;
+        }
+    }
+}

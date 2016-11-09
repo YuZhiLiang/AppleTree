@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">评果树</string>
+    <string name="login_btn">登录</string>
+    <string name="login_forget">忘记密码</string>
+    <string name="login_register">注册新账号</string>
+    <string name="register">注册账号</string>
+    <string name="code">验证账号</string>
+    <string name="prompt">系统发送验证码验证您的账号有效性</string>
+    <string name="register_next">下一步</string>
+    <string name="personal">完善个人信息</string>
+    <string name="cityHint">输入城市名称或拼音</string>
+    <string name="chooseCityButton">确认</string>
+    <string name="success">注册成功</string>
+    <string name="joinIn">进入</string>
+    <string name="forget_pwd">密码找回</string>
+    <string name="reloginText">重新登陆</string>
+    <string name="tishi1">初始密码已通过短信发送给您</string>
+    <string name="tishi2">请使用初始密码登录后</string>
+    <string name="tishi3">进行修改密码操作</string>
+    <string name="tishi4">班级一旦创建，无法删除，请谨慎创建</string>
+
+    <string name="courseName">课程</string>
+    <string name="myClassed">我的班级</string>
+    <string name="myGroup">我的分组</string>
+    <string name="pingJiaZhiB">评价指标</string>
+    <string name="myCollect">我的收藏</string>
+    <string name="exit">退出登录</string>
+    <string name="addLesson">新增课程</string>
+    <string name="save">保存</string>
+    <string name="subTiShi">（选择自定义教材版本时此选项可多选）</string>
+    <string name="tianJiaBanJi">添加班级</string>
+    <string name="addClassesTxt">选择适合的建班方式</string>
+    <string name="xingZhengBan">行政班</string>
+    <string name="xingQuBan">兴趣班</string>
+    <string name="jiaRu">加入</string>
+    <string name="wancheng">完成</string>
+    <string name="xinzengfz">新增分组方案</string>
+    <string name="huoqufz">获取分组方案</string>
+
+    <string name="aboutUs">\u3000\u3000关于我们</string>
+    <string name="fangantixing">\u3000\u3000方案设置后，人数不可修改\n如需修改人数，请新建一个方案</string>
+
+    <string-array name="contact_level">
+        <item>2</item>
+        <item>4</item>
+        <item>6</item>
+        <item>8</item>
+        <item>10</item>
+    </string-array>
+</resources>

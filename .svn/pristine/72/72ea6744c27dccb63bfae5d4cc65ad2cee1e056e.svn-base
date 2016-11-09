@@ -1,0 +1,12 @@
+package com.sy.appletree.utils;
+
+/**
+ * Created by Administrator on 2016/10/10.
+ */
+public class Const {
+   //闪屏延迟时间
+    public static final int SPLASH_DELAY_TIME=1000;
+
+    public static final int SETTO=10;
+
+}

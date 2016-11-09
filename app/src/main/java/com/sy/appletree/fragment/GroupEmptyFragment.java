@@ -1,0 +1,414 @@
+package com.sy.appletree.fragment;
+
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.sy.appletree.R;
+import com.sy.appletree.utils.FenZuListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Created by Administrator on 2016/10/31.
+ */
+
+/**
+ * 我的分组空白页！！！
+ */
+public class GroupEmptyFragment extends Fragment {
+    @Bind(R.id.group_xinzeng)
+    RelativeLayout mGroupXinzeng;
+    @Bind(R.id.group_huoqu)
+    RelativeLayout mGroupHuoqu;
+    private View mView;
+    private onGroupChangeListener mOnGroupChangeListener;
+
+    private FenZuListener mFenZuListener;
+
+    public FenZuListener getFenZuListener() {
+        return mFenZuListener;
+    }
+
+    public void setFenZuListener(FenZuListener fenZuListener) {
+        mFenZuListener = fenZuListener;
+    }
+
+    final String[] levelArray ={"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"};
+    //点击获取分组方案弹出的已存在的组
+    private List<String> mList=new ArrayList<>();
+    private int ClickPosition = -1;
+    private String SelectGroup="";
+    private CunZaiAdapter mCunZaiAdapter;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        for (int i = 0; i < 6; i++) {
+            mList.add("德玛西亚"+i+"组");
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mView = inflater.inflate(R.layout.group_emptyview, container, false);
+        ButterKnife.bind(this, mView);
+
+        return mView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+    }
+
+    @OnClick({R.id.group_xinzeng, R.id.group_huoqu})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            ///点击新增分组时
+            case R.id.group_xinzeng:
+                initPopWindow("add");
+                openPopWindow();
+                break;
+            //点击获取已有分组方案时
+            case R.id.group_huoqu:
+                initPopWindow("hq");
+                openPopWindow();
+
+                break;
+        }
+    }
+    public void openPopWindow() {
+        //底部显示
+        popupWindow.showAtLocation(contentView, Gravity.BOTTOM, 0, 0);
+    }
+
+    private void screenBrighter() {
+        WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
+        params.alpha = 1f;
+        getActivity().getWindow().setAttributes(params);
+    }
+
+    private void screenDimmed() {
+        WindowManager.LayoutParams params = getActivity().getWindow().getAttributes();
+        params.alpha = 0.5f;
+        getActivity().getWindow().setAttributes(params);
+    }
+    private View contentView;
+    private PopupWindow popupWindow;
+    private Dialog dialog;
+
+    boolean isExpand=false;
+    private void initPopWindow(final String tag) {
+
+        screenDimmed();//暗屏
+
+        //加载弹出框的布局
+        contentView = LayoutInflater.from(getActivity()).inflate(
+                R.layout.pop_fenzu, null);
+        //设置弹出框的宽度和高度
+        popupWindow = new PopupWindow(contentView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setFocusable(true);// 取得焦点
+        //注意  要是点击外部空白处弹框消息  那么必须给弹框设置一个背景色  不然是不起作用的
+        popupWindow.setBackgroundDrawable(new BitmapDrawable());
+        //点击外部消失
+        popupWindow.setOutsideTouchable(true);
+        //设置可以点击
+        popupWindow.setTouchable(true);
+        //进入退出的动画
+        popupWindow.setAnimationStyle(R.style.mypopwindow_anim_style);
+
+        LinearLayout mClick= (LinearLayout) contentView.findViewById(R.id.renshu_click);
+        TextView title= (TextView) contentView.findViewById(R.id.fenzu_title);
+        final TextView number= (TextView) contentView.findViewById(R.id.fenzu_renshu);
+        final EditText name= (EditText) contentView.findViewById(R.id.fenzu_name);
+        Button btn= (Button) contentView.findViewById(R.id.fenzu_btn);
+        ImageView colse= (ImageView) contentView.findViewById(R.id.close);
+        ListView listView= (ListView) contentView.findViewById(R.id.fenzu_list);
+
+        LinearLayout xinjian= (LinearLayout) contentView.findViewById(R.id.xinjianfenzu);
+        LinearLayout cunzai= (LinearLayout) contentView.findViewById(R.id.cunzaifenzu);
+
+        mCunZaiAdapter=new CunZaiAdapter(mList);
+        listView.setAdapter(mCunZaiAdapter);
+        if (tag.equals("add")){
+            title.setText("新分组方案设置");
+            xinjian.setVisibility(View.VISIBLE);
+            cunzai.setVisibility(View.GONE);
+            btn.setText("完成设置");
+        }else if(tag.equals("hq")){
+            title.setText("已存在的分组方案");
+            xinjian.setVisibility(View.GONE);
+            cunzai.setVisibility(View.VISIBLE);
+            btn.setText("使用");
+        }
+
+        //模拟spinner效果
+        mClick.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!isExpand) {
+                    dialog = new Dialog(getActivity());
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    ListView mListView = new ListView(getActivity());
+                    mListView.setCacheColorHint(Color.TRANSPARENT);
+                    mListView.setAdapter(new LevelAdapter());
+                    mListView.setBackgroundColor(Color.parseColor("#ffffff"));
+                    mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            // TODO Auto-generated method stub
+                            number.setText(levelArray[position]);
+                            if (dialog != null) {
+                                dialog.dismiss();
+                                dialog = null;
+                                isExpand = false;
+                            }
+                        }
+                    });
+                    dialog.setContentView(mListView);
+                    dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            // TODO Auto-generated method stub
+                            isExpand = false;
+                        }
+                    });
+                    Window dialogWindow = dialog.getWindow();
+                    dialogWindow.setBackgroundDrawable(new ColorDrawable(android.graphics.Color.RED));
+                    dialogWindow.setGravity(Gravity.LEFT | Gravity.TOP);
+                    WindowManager.LayoutParams lp = dialogWindow.getAttributes();
+                    lp.dimAmount = 0f;
+                    int[] location = new int[2];
+                    number.getLocationOnScreen(location);
+                    Rect out = new Rect();
+                    number.getWindowVisibleDisplayFrame(out);
+                    lp.x = location[0];
+                    lp.y = location[1] - out.top + number.getHeight();
+                    lp.width = number.getWidth();
+                    lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+                    dialogWindow.setAttributes(lp);
+                    dialog.show();
+                    isExpand = true;
+                } else {
+                    if (dialog != null) {
+                        dialog.dismiss();
+                        dialog = null;
+                    }
+                }
+            }
+        });
+
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //待判断
+                if (tag.equals("add")){
+                    if (TextUtils.isEmpty(name.getText().toString())){
+                        Toast.makeText(getActivity(),"请设置小组名称",Toast.LENGTH_SHORT).show();
+                        return;
+                    }else if (number.getText().toString().equals("分组人数")){
+                        Toast.makeText(getActivity(),"请设置分组人数",Toast.LENGTH_SHORT).show();
+                        return;
+                    }else {
+                        //分组人数选择好时的逻辑
+                        if (popupWindow != null && popupWindow.isShowing()) {
+                            String groupName = name.getText().toString();
+                            int groupStudentsNumber = Integer.parseInt(number.getText().toString());
+                            //添加了分组，通知班级管理的Activity新加入一个分组的Fragment
+                            if(mOnGroupChangeListener != null) {
+                                mOnGroupChangeListener.onAddNewGroupListener(groupName, groupStudentsNumber);
+                            }
+                            popupWindow.dismiss();
+                            popupWindow = null;
+                        }
+                    }
+
+                }else {
+                    if (SelectGroup.equals("")){
+                        Toast.makeText(getActivity(),"未选择使用分组",Toast.LENGTH_SHORT).show();
+                        return;
+                    }else {
+                        mFenZuListener.ChangePosition(ClickPosition);
+                        if (popupWindow != null && popupWindow.isShowing()) {
+                            popupWindow.dismiss();
+                            popupWindow = null;
+                        }
+                    }
+
+                }
+            }
+        });
+
+        colse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (popupWindow != null && popupWindow.isShowing()) {
+                    popupWindow.dismiss();
+                    popupWindow = null;
+                }
+            }
+        });
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+
+                //亮屏
+                screenBrighter();
+
+            }
+        });
+    }
+
+
+    public class LevelAdapter extends BaseAdapter{
+
+        private String[] data;
+
+        public LevelAdapter() {
+            data=levelArray;
+        }
+
+        @Override
+        public int getCount() {
+            return data.length;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            convertView=LayoutInflater.from(parent.getContext()).inflate(R.layout.dialog_spinner_item,null);
+            TextView textView= (TextView) convertView.findViewById(R.id.diaspin_txt);
+
+            textView.setText(data[position]);
+            return convertView;
+        }
+    }
+
+    public class CunZaiAdapter extends BaseAdapter{
+        private List<String> mStrings;
+
+        public CunZaiAdapter(List<String> strings) {
+            mStrings = strings;
+        }
+
+        @Override
+        public int getCount() {
+            return mStrings.size();
+        }
+
+        @Override
+        public String getItem(int position) {
+            return mStrings.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+
+            ViewHolder holder;
+            if (convertView==null){
+                holder=new ViewHolder();
+                convertView=LayoutInflater.from(parent.getContext()).inflate(R.layout.cunzai_item,null);
+
+                holder.mCheckBox = (RadioButton) convertView.findViewById(R.id.czGroup_check);
+                holder.mRadioGroup= (RadioGroup) convertView.findViewById(R.id.czGroup_radio);
+                holder.mTextView= (TextView) convertView.findViewById(R.id.czGroup_renshu);
+                convertView.setTag(holder);
+            }else {
+                holder= (ViewHolder) convertView.getTag();
+            }
+
+            if (mList.size() != 0) {
+                holder.mCheckBox.setText(mList.get(position));
+                holder.mRadioGroup.clearCheck();
+            }
+            if (ClickPosition == position) {//条目为刚才点击的条目
+
+                holder.mCheckBox.setChecked(true);
+            } else {
+                holder.mCheckBox.setChecked(false);
+            }
+            holder.mCheckBox.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ClickPosition = position;
+                    SelectGroup=mStrings.get(position);
+                    notifyDataSetChanged();
+                    Log.e("刷新执行了", position + "");
+                }
+            });
+
+
+            return convertView;
+        }
+
+        class ViewHolder{
+            RadioButton mCheckBox;
+            RadioGroup mRadioGroup;
+            TextView mTextView;
+        }
+    }
+
+    public void setOnGroupChangeListener(onGroupChangeListener onGroupChangeListener) {
+        mOnGroupChangeListener = onGroupChangeListener;
+    }
+
+    //在班级管理第一个页面点击的是新增分组之后的或获取已存在分组的监听
+    public interface onGroupChangeListener {
+        void onAddNewGroupListener(String groupName, int groupStudentsNumber);
+    };
+}

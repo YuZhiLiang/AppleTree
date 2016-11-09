@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#ffffff</color>
+
+    <color name="transparent">#00000000</color>
+
+    <!-- 白色-->
+    <color name="myWhite">#ffffffff</color>
+    <!-- 间隔底色-->
+    <color name="myGray">#eee</color>
+    <!-- 绿色文字统一色-->
+    <color name="textColor">#46b29e</color>
+
+    <!-- 蓝色按钮背景颜色-->
+    <color name="btnColor">#5ac6b8</color>
+    <!-- 性别文字颜色-->
+    <color name="sexColor">#6c9b8b</color>
+    <!-- 选择城市确认文字颜色-->
+    <color name="chooseCityTextColor">#51c4b2</color>
+    <!-- 分割线-->
+    <color name="line">#d6d6d6</color>
+    <!-- 提示色-->
+    <color name="myRed">#fe2424</color>
+
+    <!-- 灰色文字颜色-->
+    <color name="mGray">#808080</color>
+    <!-- 阴影-->
+    <color name="YinYing">#d6d6d6</color>
+    <!-- CCC大灰-->
+    <color name="CCC">#cccccc</color>
+    <!-- F2背景色-->
+    <color name="F2">#f2f2f2</color>
+    <!-- 紫黑色-->
+    <color name="ZiSe">#2c3e58</color>
+    <color name="bgGray">#50000000</color>
+    <color name="LiteGray">#10000000</color>
+</resources>

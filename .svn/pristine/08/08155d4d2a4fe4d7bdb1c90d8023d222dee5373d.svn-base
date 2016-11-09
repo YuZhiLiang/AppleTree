@@ -1,0 +1,279 @@
+package com.sy.appletree.base;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.sy.appletree.R;
+import com.sy.appletree.utils.Const;
+import com.sy.appletree.utils.SharePreferenceUtils;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
+/**
+ * 基类activity，融合过多页面，请仔细查看再动手。
+ */
+
+public abstract class BaseActivity extends AppCompatActivity {
+
+    @Bind(R.id.base_left)
+    RelativeLayout mBaseLeft;
+    @Bind(R.id.base_title)
+    TextView mBaseTitle;
+    @Bind(R.id.base_center)
+    RelativeLayout mBaseCenter;
+    @Bind(R.id.base_right_icon)
+    ImageView mBaseRightIcon;
+    @Bind(R.id.base_right)
+    RelativeLayout mBaseRight;
+    @Bind(R.id.base_content)
+    LinearLayout mBaseContent;
+    @Bind(R.id.base_top_bg)
+    RelativeLayout mBaseTopBg;
+    @Bind(R.id.base_child_content)
+    LinearLayout mBaseChildContent;
+    @Bind(R.id.base_city_search)
+    EditText mBaseCitySearch;
+    @Bind(R.id.base_search_btn)
+    ImageButton mBaseSearchBtn;
+    @Bind(R.id.base_search_content)
+    RelativeLayout mBaseSearchContent;
+    @Bind(R.id.base_now_city)
+    TextView mBaseNowCity;
+    @Bind(R.id.base_place_city)
+    TextView mBasePlaceCity;
+    @Bind(R.id.base_place_search)
+    EditText mBasePlaceSearch;
+    @Bind(R.id.base_search_btn1)
+    ImageButton mBaseSearchBtn1;
+    @Bind(R.id.base_search_content1)
+    RelativeLayout mBaseSearchContent1;
+    @Bind(R.id.base_right_addTxt)
+    TextView mBaseRightAddTxt;
+    @Bind(R.id.base_city_search2)
+    EditText mBaseCitySearch2;
+    @Bind(R.id.base_search_btn2)
+    ImageButton mBaseSearchBtn2;
+    @Bind(R.id.base_search_content2)
+    RelativeLayout mBaseSearchContent2;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_base);
+        ButterKnife.bind(this);
+
+        initParent();
+        setOnLeftClick();
+        findViews();
+        getData();
+        setListener();
+
+        //接收关闭广播
+        downActivity();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mFinishReceiver);
+    }
+
+    private void initParent() {
+        //子类真实的样子
+        View view = LayoutInflater.from(this).inflate(setContentView(), null);
+        mBaseChildContent.addView(view);
+    }
+
+    /**
+     * 开放给子类去实现自己的展示效果
+     *
+     * @param text
+     */
+    protected void setTitleText(String text, boolean isdo) {
+        if (isdo) {
+            mBaseTitle.setText(text);
+            mBaseTitle.setVisibility(View.VISIBLE);
+        } else {
+            mBaseTitle.setVisibility(View.INVISIBLE);
+        }
+
+    }
+
+    /**
+     * 右侧图标是否存在
+     *
+     * @param rightIcon
+     * @param isdo
+     */
+    protected void setBaseRightIcon(int rightIcon, boolean isdo) {
+        if (isdo) {
+//            mBaseRight.setVisibility(View.VISIBLE);
+            mBaseRightIcon.setImageResource(rightIcon);
+        } else {
+//            mBaseRight.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    /**
+     * 回退事件
+     */
+    protected void setOnLeftClick() {
+        mBaseLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    /**
+     * 右侧的事件
+     *
+     * @param onClickListener
+     */
+    protected void setBaseRightClickListener(View.OnClickListener onClickListener) {
+        mBaseRight.setOnClickListener(onClickListener);
+    }
+
+    /**
+     * 添加按钮的可视化
+     */
+    protected void setOnRightVillable(boolean isSee) {
+        if (isSee) {
+            mBaseRightAddTxt.setVisibility(View.VISIBLE);
+        } else {
+            mBaseRightAddTxt.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * 城市筛选是否可见
+     */
+    protected void setCitySearchVillable(boolean isSee) {
+        if (isSee) {
+            mBaseSearchContent.setVisibility(View.VISIBLE);
+            mBaseNowCity.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * 城市搜索事件
+     */
+    protected void setBaseCitySearchListener(View.OnClickListener onClickListener) {
+        mBaseSearchBtn.setOnClickListener(onClickListener);
+    }
+
+    /**
+     * 设置当前城市
+     */
+    protected void setBaseNowCityText(String cityText) {
+        mBaseNowCity.setText("当前:" + cityText);
+    }
+
+    /**
+     * 重新选择城市的事件
+     */
+    protected void setOnReSelcectCityListener(View.OnClickListener onClickListener) {
+        mBasePlaceCity.setOnClickListener(onClickListener);
+    }
+
+    /**
+     * 地区筛选是否可见
+     */
+    protected void setPlaceSearchVillable(boolean isSee) {
+        if (isSee) {
+            mBaseSearchContent1.setVisibility(View.VISIBLE);
+            mBasePlaceCity.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * 设置地区页面的城市
+     */
+    protected void setBasePlaceCityText(String text) {
+        SharePreferenceUtils.setParam(BaseActivity.this, Const.CACHE_CITY, text);
+        mBasePlaceCity.setText(text);
+    }
+
+    /**
+     * 地区搜索事件
+     */
+    protected void setBasePlaceSearchListener(View.OnClickListener onClickListener) {
+        mBaseSearchBtn1.setOnClickListener(onClickListener);
+    }
+
+    /**
+     * 创建行政班
+     * 兴趣班模块
+     */
+    //搜索栏可见
+    protected void setSeacherVillable(boolean isSee){
+        if (isSee){
+            mBaseSearchContent2.setVisibility(View.VISIBLE);
+        }
+    }
+    //搜索事件
+    protected void setClassesSearchListener(View.OnClickListener onClickListener){
+        mBaseSearchBtn2.setOnClickListener(onClickListener);
+    }
+
+    /**
+     * 让子类实现去找到view的对象
+     */
+    protected abstract void findViews();
+
+    /**
+     * 获取数据
+     */
+    protected abstract void getData();
+
+    /**
+     * 设置交互事件
+     */
+    protected abstract void setListener();
+
+    protected abstract int setContentView();
+
+
+    private void downActivity() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("finish");
+        registerReceiver(mFinishReceiver, filter);
+    }
+
+    private BroadcastReceiver mFinishReceiver = new BroadcastReceiver() {
+
+        @Override
+
+        public void onReceive(Context context, Intent intent) {
+
+            if ("finish".equals(intent.getAction())) {
+
+                Log.e("#########", "I am " + getLocalClassName()
+
+                        + ",now finishing myself...");
+
+                finish();
+
+            }
+
+        }
+
+    };
+}
