@@ -24,8 +24,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.adapter.CourseAdapter;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.ModleBean.BeikeBean;
@@ -77,7 +79,7 @@ public class BeiKeActivity extends AppCompatActivity {
     private String nianji;
     private String kecheng;
     private boolean mDanxuan;
-    public CourseAdapter mCourseAdapter;
+    private CourseAdapter mCourseAdapter;
 
     private List<BeikeBean> mBeikeBeans = new ArrayList<>();
     private List<BeikeBean> mBeikeBeans1 = new ArrayList<>();
@@ -108,11 +110,6 @@ public class BeiKeActivity extends AppCompatActivity {
         setView();
         getDtaaFromService();
         if (mYuLan) {
-            for (int i = 0; i < 3; i++) {
-                BeikeBean beikeBean = new BeikeBean();
-                beikeBean.setName("假设有任务" + i);
-                mBeikeBeans1.add(beikeBean);
-            }
             mCourseAdapter = new CourseAdapter(mBeikeBeans1, true);
         } else {
             mCourseAdapter = new CourseAdapter(mBeikeBeans1, false);
@@ -290,7 +287,7 @@ public class BeiKeActivity extends AppCompatActivity {
                     } else {
                         beikeBean.setMuBiao(mubiao.getText().toString());
                     }
-                    addBeiKeBean2Service();
+                    addBiKeBean(beikeBean);
                     mBeikeBeans.add(beikeBean);
                     mBeikeBeans1.clear();
                     mBeikeBeans1.addAll(mBeikeBeans);
@@ -327,8 +324,64 @@ public class BeiKeActivity extends AppCompatActivity {
         });
     }
 
-    private void addBeiKeBean2Service() {
+    //添加小课程到课程包
+    private void addBiKeBean(BeikeBean beikeBean) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.addCourse.PROTOCOL)
+                .append(AppleTreeUrl.addCourse.PARAMS_COURSE_PACKAGE_ID + "=")
+//                .append(mID)
+                .append("70" + "&")
+                .append(AppleTreeUrl.addCourse.PARAMS_NAME + "=")
+                .append(beikeBean.getName() + "&")
+                .append(AppleTreeUrl.addCourse.PARAMS_TARGET)
+                .append(beikeBean.getMuBiao() + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        addBeiKeBean2Service(url.toString(), beikeBean);
+    }
 
+    private void addBeiKeBean2Service(String url, BeikeBean beikeBean) {
+        OkHttpUtils
+                .get()
+                .url(url)
+                .build()
+                .execute(new ThisStringCallBack(beikeBean));
+    }
+
+    class ThisStringCallBack extends StringCallback{
+        BeikeBean mBeikeBean;
+
+        public ThisStringCallBack(BeikeBean beikeBean) {
+            this.mBeikeBean = beikeBean;
+        }
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                mBeikeBean.setID(numberVavlibleBean.getData().toString());
+                addSeccess(mBeikeBean);
+            }else {
+//                addFaild();
+            }
+        }
+    }
+
+    private void addSeccess(BeikeBean beikeBean) {
+
+    }
+
+    private void toast(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
 }

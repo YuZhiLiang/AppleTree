@@ -6,6 +6,24 @@ package com.sy.appletree.utils.ModleBean;
 public class BeikeBean {
     private String name;
     private String muBiao;
+    private String mID;
+
+    public BeikeBean() {
+    }
+
+    public BeikeBean(String name, String muBiao, String ID) {
+        this.name = name;
+        this.muBiao = muBiao;
+        mID = ID;
+    }
+
+    public String getID() {
+        return mID;
+    }
+
+    public void setID(String ID) {
+        mID = ID;
+    }
 
     public String getName() {
         return name;

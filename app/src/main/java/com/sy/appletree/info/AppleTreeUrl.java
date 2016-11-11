@@ -63,8 +63,8 @@ public class AppleTreeUrl {
     }
 
     //添加课程包下的小课程
-    public static class ReleaseToWisomLib {
-        public static String PROTOCOL = "course_app_releaseToWisomLib.action?";
+    public static class addCourse {
+        public static String PROTOCOL = "course_app_addCourse.action?";
         public static String PARAMS_COURSE_PACKAGE_ID = "coursePackageId";//要添加到的课程包的ID
         public static String PARAMS_NAME = "name";//小课程名称
         public static String PARAMS_TARGET = "target";//小课程的目标
