@@ -471,6 +471,7 @@ public class AddLessonsActivity2 extends AppCompatActivity {
         Log.e(getClass().getSimpleName(), Grad);
         intent.putExtra("ID", LessonID);
         Log.e(getClass().getSimpleName(), LessonID);
+        intent.putExtra("isNewCourse", true);
 
         startActivity(intent);
         finish();

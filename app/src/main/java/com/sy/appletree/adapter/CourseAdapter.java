@@ -7,7 +7,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.sy.appletree.R;
-import com.sy.appletree.utils.ModleBean.BeikeBean;
+import com.sy.appletree.bean.BeiKeActivityListBean;
 
 import java.util.List;
 
@@ -16,34 +16,40 @@ import java.util.List;
  */
 public class CourseAdapter extends BaseAdapter {
 
-    private List<BeikeBean> mBeikeBeans;
+    private List<BeiKeActivityListBean.DataBean> mBeikeBeans;
     private boolean isZhiku;
 
-    public CourseAdapter(List<BeikeBean> beikeBeans,boolean isZhiku) {
+    public CourseAdapter(List<BeiKeActivityListBean.DataBean> beikeBeans, boolean isZhiku) {
         mBeikeBeans = beikeBeans;
         this.isZhiku=isZhiku;
     }
 
     @Override
     public int getCount() {
+        if (mBeikeBeans == null || mBeikeBeans.size() == 0) {
+            return 0;
+        }
         return mBeikeBeans.size();
     }
 
     @Override
-    public Object getItem(int position) {
-        return null;
+    public BeiKeActivityListBean.DataBean getItem(int position) {
+        if (mBeikeBeans == null || mBeikeBeans.size() == 0) {
+            return null;
+        }
+        return mBeikeBeans.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        BeikeBean beikeBean = mBeikeBeans.get(position);
-        String name = beikeBean.getName();
+        BeiKeActivityListBean.DataBean beikeBean = mBeikeBeans.get(position);
+        String name = beikeBean.getCourseName();
         ViewHolder viewHolder;
         if (convertView == null) {
             viewHolder = new ViewHolder();
@@ -67,6 +73,5 @@ public class CourseAdapter extends BaseAdapter {
 
     class ViewHolder {
         TextView mTextView;
-
     }
 }

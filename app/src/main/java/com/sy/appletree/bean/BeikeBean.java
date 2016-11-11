@@ -1,4 +1,4 @@
-package com.sy.appletree.utils.ModleBean;
+package com.sy.appletree.bean;
 
 /**
  * Created by Administrator on 2016/11/1.

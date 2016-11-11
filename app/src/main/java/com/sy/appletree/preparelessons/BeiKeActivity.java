@@ -3,8 +3,6 @@ package com.sy.appletree.preparelessons;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -27,10 +25,10 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.adapter.CourseAdapter;
+import com.sy.appletree.bean.BeiKeActivityListBean;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.utils.ModleBean.BeikeBean;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -81,54 +79,49 @@ public class BeiKeActivity extends AppCompatActivity {
     private boolean mDanxuan;
     private CourseAdapter mCourseAdapter;
 
-    private List<BeikeBean> mBeikeBeans = new ArrayList<>();
-    private List<BeikeBean> mBeikeBeans1 = new ArrayList<>();
+    private List<BeiKeActivityListBean.DataBean> mBeikeBeans = new ArrayList<>();
+    private List<BeiKeActivityListBean.DataBean> mBeikeBeans1 = new ArrayList<>();
 
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-
-            switch (msg.what) {
-                case 1:
-                    mCourseAdapter.notifyDataSetChanged();
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
+//    private Handler mHandler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//
+//            switch (msg.what) {
+//                case 1:
+//                    mCourseAdapter.notifyDataSetChanged();
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+//    };
     private boolean mYuLan;
     private String mID;
+    private boolean mIsNewCourse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bei_ke);
-        mYuLan = getIntent().getBooleanExtra("yuLan", false);
+
         ButterKnife.bind(this);
         getChuanZhi();
         setView();
-        getDtaaFromService();
-        if (mYuLan) {
-            mCourseAdapter = new CourseAdapter(mBeikeBeans1, true);
-        } else {
+        setFootViewAndOnclickListener();
+        getData();
+        setListItemOnclickListener();
+    }
+
+    private void getData() {
+        if (!mIsNewCourse) {
+            getDataFromService();
+        }else {
             mCourseAdapter = new CourseAdapter(mBeikeBeans1, false);
+            mCourseList.setAdapter(mCourseAdapter);
         }
+    }
 
-        View foot = getLayoutInflater().inflate(R.layout.footview, null);
-        if (!mYuLan) {
-            mCourseList.addFooterView(foot);
-            RelativeLayout relativeLayout = (RelativeLayout) foot.findViewById(R.id.course_add);
-            relativeLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    initPopWindow();
-                    openPopWindow();
-                }
-            });
-        }
-        mCourseList.setAdapter(mCourseAdapter);
-
+    private void setListItemOnclickListener() {
         mCourseList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -142,16 +135,30 @@ public class BeiKeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-
     }
 
-    private void getDtaaFromService() {
+    private void setFootViewAndOnclickListener() {
+        View foot = getLayoutInflater().inflate(R.layout.footview, null);
+        if (!mYuLan) {
+            mCourseList.addFooterView(foot);
+            RelativeLayout relativeLayout = (RelativeLayout) foot.findViewById(R.id.course_add);
+            relativeLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    initPopWindow();
+                    openPopWindow();
+                }
+            });
+        }
+    }
+
+    private void getDataFromService() {
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
                 .append(AppleTreeUrl.getCourse.PROTOCOL)
                 .append(AppleTreeUrl.getCourse.PARAMS_COURSE_PKG_ID + "=")
-                .append(mID + "&")
+//                .append(mID + "&")
+                .append("70" + "&")
                 .append(AppleTreeUrl.sSession + "=")
                 .append(SPUtils.getSession());
         Log.e(getClass().getSimpleName(), url.toString());
@@ -159,20 +166,41 @@ public class BeiKeActivity extends AppCompatActivity {
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(mStringCallback);
+                .execute(new GetDetaFromeServiceStringCallback());
     }
 
-    StringCallback mStringCallback = new StringCallback() {
+    class GetDetaFromeServiceStringCallback extends StringCallback {
         @Override
         public void onError(Call call, Exception e, int id) {
-
+            toast("网络开小差了");
         }
 
         @Override
         public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            BeiKeActivityListBean ListBean = gson.fromJson(response, BeiKeActivityListBean.class);
+            if (ListBean.getStatus().equals("y")) {
+                getListItemFromResponceAndSetAdapter(ListBean.getData());
+            }else {
+                toast("获取课程列表失败");
+            }
 
         }
-    };
+    }
+
+    private void getListItemFromResponceAndSetAdapter(List<BeiKeActivityListBean.DataBean> data) {
+        mBeikeBeans1 = data;
+        if (mYuLan) {
+            mCourseAdapter = new CourseAdapter(mBeikeBeans1, true);
+            mCourseList.setAdapter(mCourseAdapter);
+        } else {
+            mCourseAdapter = new CourseAdapter(mBeikeBeans1, false);
+            mCourseList.setAdapter(mCourseAdapter);
+        }
+    }
+
+    ;
 
     /**
      * 赋初值
@@ -203,12 +231,14 @@ public class BeiKeActivity extends AppCompatActivity {
 
     private void getChuanZhi() {
         Intent intent = getIntent();
-        mDanxuan = intent.getBooleanExtra("isSingle", true);
-        kecheng = intent.getStringExtra("Name");
-        kemu = intent.getStringExtra("Subject");
-        jiaocai = intent.getStringExtra("Book");
-        nianji = intent.getStringExtra("Grad");
-        mID = intent.getStringExtra("ID");
+        mYuLan = intent.getBooleanExtra("yuLan", false);//是不是预览
+        mDanxuan = intent.getBooleanExtra("isSingle", true);//是不是标准教材（非多选）
+        kecheng = intent.getStringExtra("Name");////课程包名字
+        kemu = intent.getStringExtra("Subject");//科目
+        jiaocai = intent.getStringExtra("Book");//哪个版本
+        nianji = intent.getStringExtra("Grad");//年级
+        mID = intent.getStringExtra("ID");//课程包的ID
+        mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
     }
 
     @OnClick({R.id.base_left, R.id.base_right})
@@ -280,20 +310,13 @@ public class BeiKeActivity extends AppCompatActivity {
                     Toast.makeText(BeiKeActivity.this, "请填写课程名称", Toast.LENGTH_SHORT).show();
                     return;
                 } else {
-                    BeikeBean beikeBean = new BeikeBean();
-                    beikeBean.setName(name.getText().toString());
-                    if (TextUtils.isEmpty(mubiao.getText().toString())) {
-                        beikeBean.setMuBiao("");
-                    } else {
-                        beikeBean.setMuBiao(mubiao.getText().toString());
-                    }
+                    BeiKeActivityListBean.DataBean beikeBean = new BeiKeActivityListBean.DataBean();
+
+                    beikeBean.courseName = name.getText().toString();
                     addBiKeBean(beikeBean);
-                    mBeikeBeans.add(beikeBean);
-                    mBeikeBeans1.clear();
-                    mBeikeBeans1.addAll(mBeikeBeans);
-                    Message message = new Message();
-                    message.what = 1;
-                    mHandler.sendMessage(message);
+//                    mBeikeBeans.add(beikeBean);
+//                    mBeikeBeans1.clear();
+
                     //关闭
                     if (popupWindow != null && popupWindow.isShowing()) {
                         popupWindow.dismiss();
@@ -325,7 +348,7 @@ public class BeiKeActivity extends AppCompatActivity {
     }
 
     //添加小课程到课程包
-    private void addBiKeBean(BeikeBean beikeBean) {
+    private void addBiKeBean(BeiKeActivityListBean.DataBean beikeBean) {
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
                 .append(AppleTreeUrl.addCourse.PROTOCOL)
@@ -333,27 +356,25 @@ public class BeiKeActivity extends AppCompatActivity {
 //                .append(mID)
                 .append("70" + "&")
                 .append(AppleTreeUrl.addCourse.PARAMS_NAME + "=")
-                .append(beikeBean.getName() + "&")
-                .append(AppleTreeUrl.addCourse.PARAMS_TARGET)
-                .append(beikeBean.getMuBiao() + "&")
+                .append(beikeBean.getCourseName() + "&")
                 .append(AppleTreeUrl.sSession + "=")
                 .append(SPUtils.getSession());
         Log.e(getClass().getSimpleName(), url.toString());
         addBeiKeBean2Service(url.toString(), beikeBean);
     }
 
-    private void addBeiKeBean2Service(String url, BeikeBean beikeBean) {
+    private void addBeiKeBean2Service(String url, BeiKeActivityListBean.DataBean beikeBean) {
         OkHttpUtils
                 .get()
                 .url(url)
                 .build()
-                .execute(new ThisStringCallBack(beikeBean));
+                .execute(new addBeiKeBean2ServiceStringCallBack(beikeBean));
     }
 
-    class ThisStringCallBack extends StringCallback{
-        BeikeBean mBeikeBean;
+    class addBeiKeBean2ServiceStringCallBack extends StringCallback{
+        BeiKeActivityListBean.DataBean mBeikeBean;
 
-        public ThisStringCallBack(BeikeBean beikeBean) {
+        public addBeiKeBean2ServiceStringCallBack(BeiKeActivityListBean.DataBean beikeBean) {
             this.mBeikeBean = beikeBean;
         }
 
@@ -368,16 +389,21 @@ public class BeiKeActivity extends AppCompatActivity {
             Gson gson = new Gson();
             NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
             if (numberVavlibleBean.getStatus().equals("y")) {
-                mBeikeBean.setID(numberVavlibleBean.getData().toString());
-                addSeccess(mBeikeBean);
+                mBeikeBean.setCourseId(Integer.parseInt(numberVavlibleBean.getData().toString()));
+                addBeiKeBean2ServiceSeccess(mBeikeBean);
             }else {
-//                addFaild();
+                addBeiKeBean2ServiceFaild(numberVavlibleBean);
             }
         }
     }
 
-    private void addSeccess(BeikeBean beikeBean) {
+    private void addBeiKeBean2ServiceFaild(NumberVavlibleBean numberVavlibleBean) {
+        toast(numberVavlibleBean.getInfo().toString());
+    }
 
+    private void addBeiKeBean2ServiceSeccess(BeiKeActivityListBean.DataBean beikeBean) {
+        mBeikeBeans1.add(beikeBean);
+        mCourseAdapter.notifyDataSetChanged();
     }
 
     private void toast(String message) {
