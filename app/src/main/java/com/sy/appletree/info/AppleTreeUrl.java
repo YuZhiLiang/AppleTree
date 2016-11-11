@@ -9,6 +9,7 @@ package com.sy.appletree.info;
 public class AppleTreeUrl {
     //根URL
     public static String sRootUrl = "http://120.24.234.123/pingguoshu/";
+    public static String sSession = "jession";
 //    public static String sRootUrl = "http://192.168.0.124.8080/pingguoshu/";
 
     //检查手机号码是否可用
@@ -55,5 +56,12 @@ public class AppleTreeUrl {
 
     }
 
+    //添加课程包下的小课程
+    public static class ReleaseToWisomLib {
+        public static String PROTOCOL = "course_app_releaseToWisomLib.action?";
+        public static String PARAMS_COURSE_PACKAGE_ID = "coursePackageId";//要添加到的课程包的ID
+        public static String PARAMS_NAME = "name";//小课程名称
+        public static String PARAMS_TARGET = "target";//小课程的目标
+    }
 
 }

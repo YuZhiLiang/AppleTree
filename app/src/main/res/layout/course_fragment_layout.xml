@@ -3,6 +3,7 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
+
     <RelativeLayout
         android:id="@+id/base_top_bg"
         android:layout_width="match_parent"
@@ -100,6 +101,7 @@
 
 
     </RelativeLayout>
+
     <RelativeLayout
         android:id="@+id/course_content"
         android:layout_width="match_parent"

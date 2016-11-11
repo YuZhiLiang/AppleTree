@@ -95,25 +95,25 @@ public class BeiKeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bei_ke);
-        mYuLan = getIntent().getBooleanExtra("yuLan",false);
+        mYuLan = getIntent().getBooleanExtra("yuLan", false);
         ButterKnife.bind(this);
         getChuanZhi();
         setView();
-        if (mYuLan){
+        if (mYuLan) {
             for (int i = 0; i < 3; i++) {
-                BeikeBean beikeBean=new BeikeBean();
-                beikeBean.setName("假设有任务"+i);
+                BeikeBean beikeBean = new BeikeBean();
+                beikeBean.setName("假设有任务" + i);
                 mBeikeBeans1.add(beikeBean);
             }
-            mCourseAdapter = new CourseAdapter(mBeikeBeans1,true);
-        }else {
-            mCourseAdapter = new CourseAdapter(mBeikeBeans1,false);
+            mCourseAdapter = new CourseAdapter(mBeikeBeans1, true);
+        } else {
+            mCourseAdapter = new CourseAdapter(mBeikeBeans1, false);
         }
 
         View foot = getLayoutInflater().inflate(R.layout.footview, null);
-        if (!mYuLan){
+        if (!mYuLan) {
             mCourseList.addFooterView(foot);
-            RelativeLayout relativeLayout= (RelativeLayout) foot.findViewById(R.id.course_add);
+            RelativeLayout relativeLayout = (RelativeLayout) foot.findViewById(R.id.course_add);
             relativeLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -129,15 +129,14 @@ public class BeiKeActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //点击课程跳转到预览任务列表
                 Intent intent = new Intent(BeiKeActivity.this, TaskListActivity.class);
-                if (mYuLan){
-                    intent.putExtra("yuLan",true);
-                }else {
-                    intent.putExtra("yuLan",false);
+                if (mYuLan) {
+                    intent.putExtra("yuLan", true);
+                } else {
+                    intent.putExtra("yuLan", false);
                 }
                 startActivity(intent);
             }
         });
-
 
 
     }
@@ -171,11 +170,12 @@ public class BeiKeActivity extends AppCompatActivity {
 
     private void getChuanZhi() {
         Intent intent = getIntent();
-        mDanxuan = intent.getBooleanExtra("单选", true);
-        kemu = intent.getStringExtra("科目");
-        jiaocai = intent.getStringExtra("教材");
-        nianji = intent.getStringExtra("年级");
-        kecheng = intent.getStringExtra("课程");
+        mDanxuan = intent.getBooleanExtra("isSingle", true);
+        kecheng = intent.getStringExtra("Name");
+        kemu = intent.getStringExtra("Subject");
+        jiaocai = intent.getStringExtra("Book");
+        nianji = intent.getStringExtra("Grad");
+        String ID = intent.getStringExtra("ID");
     }
 
     @OnClick({R.id.base_left, R.id.base_right})
@@ -188,8 +188,8 @@ public class BeiKeActivity extends AppCompatActivity {
                 Intent intent = new Intent(BeiKeActivity.this, MainActivity.class);
                 startActivity(intent);
                 break;
-          default:
-              break;
+            default:
+                break;
         }
     }
 

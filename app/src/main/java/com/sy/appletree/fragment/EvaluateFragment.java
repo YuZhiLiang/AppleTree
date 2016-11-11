@@ -36,6 +36,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static android.view.View.inflate;
+
 /**
  * Created by Administrator on 2016/10/12.
  */
@@ -122,7 +124,7 @@ public class EvaluateFragment extends Fragment {
             if (position == 0) {
                 mBottom_left_indicator.setImageResource(R.mipmap.btn_group_s);
                 mBottom_right_indicator.setImageResource(R.mipmap.btn_group_n);
-            }else {
+            } else {
                 mBottom_left_indicator.setImageResource(R.mipmap.btn_group_n);
                 mBottom_right_indicator.setImageResource(R.mipmap.btn_group_s);
             }
@@ -148,15 +150,21 @@ public class EvaluateFragment extends Fragment {
 
         @Override
         public View instantiateItem(ViewGroup container, int position) {
-            View view = View.inflate(BaseApplication.getContext(), R.layout.layout_radar_view, null);
+            View view = null;
+            if (position == 0) {
+                view = inflate(BaseApplication.getContext(), R.layout.view_pie_chart, null);
+//                view = new PitView(BaseApplication.getContext());
+            } else {
+                view = inflate(BaseApplication.getContext(), R.layout.layout_radar_view, null);
 
-            RadarView radar = (RadarView) view.findViewById(R.id.radar_view);
-            List<RadarData> list = new ArrayList<>();
-            for (int i = 0; i < 8; i++) {
-                RadarData data = new RadarData("评价标准" + i, i * 10);
-                list.add(data);
+                RadarView radar = (RadarView) view.findViewById(R.id.radar_view);
+                List<RadarData> list = new ArrayList<>();
+                for (int i = 0; i < 8; i++) {
+                    RadarData data = new RadarData("评价标准" + i, i * 10);
+                    list.add(data);
+                }
+                radar.setDataList(list);
             }
-            radar.setDataList(list);
             container.addView(view);
             return view;
         }

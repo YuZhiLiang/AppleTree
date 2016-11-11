@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/navibar_bg_big"
+    tools:context="com.sy.appletree.preparelessons.AddLessonsActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        >
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:src="@mipmap/btn_back_white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:text="新增课程"
+            android:textColor="#fff"
+            android:textSize="18sp"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="60dp"
+        android:background="#fff"
+        android:orientation="vertical"
+        >
+
+        <EditText
+            android:id="@+id/subject_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            android:hint="课程名称"
+            android:textColor="@color/textColor"/>
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center_vertical"
+            android:text="选择教材版本"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/lessons_1"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="1"
+                android:text="人教版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/lessons_2"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="2"
+                android:text="苏教版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/lessons_3"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="3"
+                android:text="北师大版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/lessons_4"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="4"
+                android:text="湘教版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/lessons_5"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="5"
+                android:text="长春版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/lessons_6"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="6"
+                android:text="西师大版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/lessons_7"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="7"
+                android:text="沪教版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/lessons_8"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="8"
+                android:text="河南豫版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"
+                />
+
+            <CheckBox
+                android:id="@+id/lessons_9"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="9"
+                android:text="自定义版"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"
+                />
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center_vertical"
+            android:text="选择科目"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/subject_1"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="1"
+                android:text="语文"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_2"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="2"
+                android:text="数学"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_3"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="3"
+                android:text="英语"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_4"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="4"
+                android:text="思想品德"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+
+            <CheckBox
+                android:id="@+id/subject_5"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="5"
+                android:text="科学"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_6"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="6"
+                android:text="化学"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_7"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="7"
+                android:text="物理"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/subject_8"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="8"
+                android:text="政治"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center_vertical"
+            android:text="选择适用年级"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/grade_1"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="1"
+                android:text="小学一年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_2"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="2"
+                android:text="小学二年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_3"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="3"
+                android:text="小学三年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_4"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="4"
+                android:text="小学四年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+
+            <CheckBox
+                android:id="@+id/grade_5"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="5"
+                android:text="小学五年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_6"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="6"
+                android:text="小学六年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_7"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="7"
+                android:text="初中一年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_8"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="8"
+                android:text="初中二年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+
+            <CheckBox
+                android:id="@+id/grade_9"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="9"
+                android:text="初中三年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_10"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="10"
+                android:text="高中一年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_11"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="11"
+                android:text="高中二年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+
+            <CheckBox
+                android:id="@+id/grade_12"
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/select_custom_bg"
+                android:button="@null"
+                android:gravity="center"
+                android:tag="12"
+                android:text="高中三年级"
+                android:textColor="@drawable/select_lesson_txt_color"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/save"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="60dp"
+        android:background="@color/btnColor"
+        android:gravity="center"
+        android:text="保存"
+        android:textColor="#fff"/>
+</RelativeLayout>

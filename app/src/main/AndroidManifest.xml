@@ -80,6 +80,8 @@
             android:name=".preparelessons.AddLessonsActivity"
             android:launchMode="singleTask">
         </activity>
+        <activity android:name=".preparelessons.AddLessonsActivity2">
+        </activity>
         <activity android:name=".myclasses.CreateAndAddClassesActivity">
         </activity>
         <activity android:name=".myclasses.XZAndXQClassActivity">

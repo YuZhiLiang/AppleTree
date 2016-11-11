@@ -41,4 +41,13 @@ public class NumberVavlibleBean {
     public void setInfo(String info) {
         this.info = info;
     }
+
+    @Override
+    public String toString() {
+        return "NumberVavlibleBean{" +
+                "status='" + status + '\'' +
+                ", data=" + data +
+                ", info='" + info + '\'' +
+                '}';
+    }
 }

@@ -19,7 +19,9 @@ import com.sy.appletree.R;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.http_about_utils.CheckForAllUtils;
 import com.sy.appletree.utils.http_about_utils.HttpUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
@@ -86,10 +88,10 @@ public class LoginAvtivity extends AppCompatActivity {
     private void loging(String user, String pass) {
         String baseUrl = AppleTreeUrl.sRootUrl + AppleTreeUrl.Loging.PROTOCOL;
         Map<String, Object> params = new HashMap<>();
-//        String MD5Password = CheckForAllUtils.getMD5(pass);//MD5
+        String MD5Password = CheckForAllUtils.getMD5(pass);//MD5
         params.put(AppleTreeUrl.Loging.PARAMS_USERNAME, user);
-//        params.put(AppleTreeUrl.Loging.PARAMS_PASSWORD, MD5Password);//MD5
-        params.put(AppleTreeUrl.Loging.PARAMS_PASSWORD, pass);
+        params.put(AppleTreeUrl.Loging.PARAMS_PASSWORD, MD5Password);//MD5
+//        params.put(AppleTreeUrl.Loging.PARAMS_PASSWORD, pass);
         String url = baseUrl + HttpUtils.getUrlParamsByMap(params);
 
         Log.e("info", url);
@@ -110,9 +112,13 @@ public class LoginAvtivity extends AppCompatActivity {
                         //bean类一样的 拿来复用
                         NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
                         if (numberVavlibleBean.getStatus().equals("y")) {
-                            toast("登录成功");
+                            //存储Session
+
+                            SPUtils.putSession(numberVavlibleBean.getData().toString());
                             Intent intent2 = new Intent(LoginAvtivity.this, MainActivity.class);
                             startActivity(intent2);
+                            toast("登录成功");
+
                         } else {
                             toast(numberVavlibleBean.getInfo());
                         }

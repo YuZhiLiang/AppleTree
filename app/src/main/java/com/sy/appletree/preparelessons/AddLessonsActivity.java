@@ -15,9 +15,12 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.http_about_utils.HttpUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.MyGridView;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -184,10 +187,9 @@ public class AddLessonsActivity extends AppCompatActivity {
                         grade.append(list1.get(i));
                     }
                     //多选
-                    Toast.makeText(AddLessonsActivity.this, "暂不支持自定义教材",
-                            Toast.LENGTH_LONG).show();//输出结果
+                    toast("暂时不支持自定义教材版本");
                     return;
-
+//                    addCoursePackage2Service();
 //                    Intent intent = new Intent(AddLessonsActivity.this, BeiKeActivity.class);
 //                    intent.putExtra("yuLan", false);
 //                    intent.putExtra("单选", false);
@@ -230,14 +232,11 @@ public class AddLessonsActivity extends AppCompatActivity {
     }
 
     private void addCustonMaterial() {
-
-    }
-
-    private void addStandordMaterial() {
         String url = AppleTreeUrl.sRootUrl + AppleTreeUrl.AddCoursePackage.PROTOCOL
+                + AppleTreeUrl.sSession + "=" + SPUtils.getSession()
                 //拼接参数Url，这一步及其的坑
                 + getParams();
-        Log.e(getClass().getSimpleName(), "添加课程的请求的URL" + url);
+        Log.e(getClass().getSimpleName(), "添加自定义课程的请求的URL" + url);
         OkHttpUtils
                 .get()
                 .url(url)
@@ -251,14 +250,69 @@ public class AddLessonsActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response, int id) {
                         toast("请求服务器成功");
-                        Log.e(getClass().getSimpleName(), "添加课程成功" + response);
-                        Intent intent = new Intent(AddLessonsActivity.this, BeiKeActivity.class);
-                        intent.putExtra("单选", true);
-                        intent.putExtra("科目", mMap_Subject.get("subject"));
-                        intent.putExtra("教材", mMap_Lesson.get("lesson"));
-                        intent.putExtra("年级", mMap_Grade.get("grade"));
-                        intent.putExtra("课程", mLessonEdit.getText().toString());
-                        startActivity(intent);
+                        Gson gson = new Gson();
+                        //数据类型一样Bean类拿来复用；
+                        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+                        Log.e(getClass().getSimpleName(), numberVavlibleBean.toString());
+                        if (numberVavlibleBean.getStatus().equals("y")) {
+                            //添加成功
+                            Intent intent = new Intent(AddLessonsActivity.this, BeiKeActivity.class);
+                            intent.putExtra("单选", false);
+                            intent.putExtra("课程", mLessonEdit.getText().toString());
+                            intent.putExtra("教材", mMap_Lesson.get("lesson"));
+                            intent.putExtra("科目", getMultiselectParams(mList_Subjects, 1).toString());
+                            intent.putExtra("年级", getMultiselectParams(mList_Grades, 2).toString());
+                            intent.putExtra("ID", numberVavlibleBean.getData().toString());
+                            startActivity(intent);
+                        } else {
+                            //添加失败
+                            toast("添加失败");
+                        }
+
+                    }
+                });
+
+    }
+
+
+    private void addStandordMaterial() {
+        String url = AppleTreeUrl.sRootUrl + AppleTreeUrl.AddCoursePackage.PROTOCOL
+                + AppleTreeUrl.sSession + "=" + SPUtils.getSession()
+                //拼接参数Url，这一步及其的坑
+                + getParams();
+        Log.e(getClass().getSimpleName(), "添加标准课程的请求的URL" + url);
+        OkHttpUtils
+                .get()
+                .url(url)
+                .build()
+                .execute(new StringCallback() {
+                    @Override
+                    public void onError(Call call, Exception e, int id) {
+                        Toast.makeText(getApplicationContext(), "添加失败ing", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onResponse(String response, int id) {
+                        toast("请求服务器成功");
+                        Gson gson = new Gson();
+                        //数据类型一样Bean类拿来复用；
+                        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+                        Log.e(getClass().getSimpleName(), numberVavlibleBean.toString());
+                        if (numberVavlibleBean.getStatus().equals("y")) {
+                            //添加成功
+                            Intent intent = new Intent(AddLessonsActivity.this, BeiKeActivity.class);
+                            intent.putExtra("单选", true);
+                            intent.putExtra("课程", mLessonEdit.getText().toString());
+                            intent.putExtra("教材", mMap_Lesson.get("lesson"));
+                            intent.putExtra("科目", mMap_Subject.get("subject"));
+                            intent.putExtra("年级", mMap_Grade.get("grade"));
+//                            intent.putExtra("ID", numberVavlibleBean.getData().toString());
+                            startActivity(intent);
+                        } else {
+                            //添加失败
+
+                        }
+
                     }
                 });
 
@@ -291,13 +345,37 @@ public class AddLessonsActivity extends AppCompatActivity {
         String paramsUrl = null;
         if (isCustom) {
             //自定义的
+            /*课程名：mLessonEdit.getText().toString()
+            教材：" + mMap_Lesson.get("lesson")
+            科目：" + sub.toString()
+           年级：" + grade.toString());*/
+            StringBuffer tempUrl = new StringBuffer();
+            //拿到课程名字
+            tempUrl.append(AppleTreeUrl.AddCoursePackage.PARAMS_NAME).append("=").append(mLessonEdit.getText().toString().trim())
+                    //拿到教材版本
+                    .append("&")
+                    .append(AppleTreeUrl.AddCoursePackage.PARAMS_VERSION)
+                    .append("=")
+                    .append(mMap_Lesson.get("lesson"))
+                    //拿到所有科目
+                    .append("&")
+                    .append(AppleTreeUrl.AddCoursePackage.PARAMS_USUBJECT)
+                    .append("=")
+                    .append(getMultiselectParams(mList_Subjects, 1))
+                    //拿到所有年级
+                    .append("&")
+                    .append(AppleTreeUrl.AddCoursePackage.PARAMS_USE_GRADE)
+                    .append("=")
+                    .append(getMultiselectParams(mList_Grades, 2));
 
+            return tempUrl.toString();
         } else {
             //单选的
 /*            "课程名：mLessonEdit.getText().toString()
             教材：" + mMap_Lesson.get("lesson")
             科目：" + mMap_Subject.get("subject")
             年级：" + mMap_Grade.get("grade")*/
+
             HashMap<String, Object> params = new HashMap<>();
             //添加课程名字
             params.put(AppleTreeUrl.AddCoursePackage.PARAMS_NAME, mLessonEdit.getText().toString().trim());
@@ -310,19 +388,98 @@ public class AddLessonsActivity extends AppCompatActivity {
             //添加年级代号
             String grade = getMetarielVersion(mListGrade, mMap_Grade.get("grade"));
             params.put(AppleTreeUrl.AddCoursePackage.PARAMS_USE_GRADE, grade);
+            //添加Session
+            params.put(AppleTreeUrl.sSession, SPUtils.getSession());
 
             paramsUrl = HttpUtils.getUrlParamsByMap(params);
+
         }
         return paramsUrl;
     }
 
-    //拿到教材版本代号，年级代号或者科目代号，尼玛好坑的方法，没办法之前的程序员留下的坑，填不平只好继续往下挖
+    //拼接多选时的url参数,c代表拼什么参数，1代表拼科目， 2代表拼年级
+    private StringBuffer getMultiselectParams(ArrayList<String> paramsList, int c) {
+        StringBuffer tempUrl = new StringBuffer();
+        if (c == 1) {
+            for (String s : paramsList) {
+                switch (s) {
+                    case "语文":
+                        tempUrl.append("1,");
+                    case "数学":
+                        tempUrl.append("2,");
+                    case "英语":
+                        tempUrl.append("3,");
+                    case "思想品德":
+                        tempUrl.append("4,");
+                    case "科学":
+                        tempUrl.append("5,");
+                    case "化学":
+                        tempUrl.append("6,");
+                    case "物理":
+                        tempUrl.append("7,");
+                    case "政治":
+                        tempUrl.append("8,");
+                }
+            }
+        } else {
+            for (String s : paramsList) {
+                switch (s) {
+                    case "小学一年级":
+                        tempUrl.append("1,");
+                        break;
+                    case "小学二年级":
+                        tempUrl.append("2,");
+                        break;
+                    case "小学三年级":
+                        tempUrl.append("3,");
+                        break;
+                    case "小学四年级":
+                        tempUrl.append("4,");
+                        break;
+                    case "小学五年级":
+                        tempUrl.append("5,");
+                        break;
+                    case "小学六年级":
+                        tempUrl.append("6,");
+                        break;
+                    case "初中七年级":
+                        tempUrl.append("7,");
+                        break;
+                    case "初中八年级":
+                        tempUrl.append("8,");
+                        break;
+                    case "初中九年级":
+                        tempUrl.append("9,");
+                        break;
+                    case "高中一年级":
+                        tempUrl.append("10,");
+                        break;
+                    case "高中二年级":
+                        tempUrl.append("11,");
+                        break;
+                    case "高中三年级":
+                        tempUrl.append("12,");
+                        break;
+                }
+            }
+        }
+
+        return spliteLast(tempUrl);
+    }
+
+    //去掉最后一个逗号
+    private StringBuffer spliteLast(StringBuffer buffer) {
+        StringBuffer replace = buffer.replace(buffer.length() - 1, buffer.length(), "");
+        return replace;
+    }
+
+    //拿到单选教材版本代号，年级代号或者科目代号，尼玛好坑的方法，没办法之前的程序员留下的坑，填不平只好继续往下挖
     public String getMetarielVersion(List list, String lesson) {
         int count = 1;
         for (int i = 0; i < list.size(); i++) {
             if (!list.get(i).equals(lesson)) {
                 count++;
-            }else {
+            } else {
                 return String.valueOf(count);
             }
         }
@@ -414,7 +571,7 @@ public class AddLessonsActivity extends AppCompatActivity {
      * 科目的适配器
      */
     private Map<String, String> mMap_Subject = new HashMap<>();//单选记录器
-    private List<String> mList_Subjects = new ArrayList<>();//多选记录器
+    private ArrayList<String> mList_Subjects = new ArrayList<>();//多选记录器
 
     private int ClickPosition1 = -1;
 
@@ -527,7 +684,7 @@ public class AddLessonsActivity extends AppCompatActivity {
      * 年级的适配器
      */
     private Map<String, String> mMap_Grade = new HashMap<>();
-    private List<String> mList_Grades = new ArrayList<>();//多选记录器
+    private ArrayList<String> mList_Grades = new ArrayList<>();//多选记录器
     private int ClickPosition2 = -1;
 
     public class GradeAdapter extends BaseAdapter {

@@ -20,6 +20,8 @@ import okhttp3.OkHttpClient;
  * 自定义应用
  */
 public class BaseApplication extends Application {
+    private static String spName = "app_tree_sp";//sp文件名字
+    public static String sSesstion;
     private List<Activity> mActivities = new ArrayList<>();
     private static Context mContext;
 
@@ -28,6 +30,10 @@ public class BaseApplication extends Application {
         super.onCreate();
         mContext = getApplicationContext();
         initClient();
+    }
+
+    public static String getSpName() {
+        return spName;
     }
 
     //初始化OkHttpUtils

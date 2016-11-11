@@ -40,6 +40,7 @@
 
     <string name="aboutUs">\u3000\u3000关于我们</string>
     <string name="fangantixing">\u3000\u3000方案设置后，人数不可修改\n如需修改人数，请新建一个方案</string>
+    <string name="app_tree_sp"/>
 
     <string-array name="contact_level">
         <item>2</item>

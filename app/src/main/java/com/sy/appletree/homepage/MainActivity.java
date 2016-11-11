@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mCourseFragment = (CourseFragment) mFragmentManager.findFragmentByTag("course");
             mTankFragment = (TankFragment) mFragmentManager.findFragmentByTag("tank");
             mEvaluateFragment = (EvaluateFragment) mFragmentManager.findFragmentByTag("evaluate");
-
         } else {
             initFragment();
         }
@@ -188,14 +187,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void addFragment() {
-        mFragmentManager.beginTransaction()
-                .add(R.id.main_content, mCourseFragment, "course")
-                .add(R.id.main_content, mTankFragment, "tank")
-                .add(R.id.main_content, mEvaluateFragment, "evaluate")
-                .show(mCourseFragment)
-                .hide(mEvaluateFragment)
-                .hide(mTankFragment)
-                .commit();
+            mFragmentManager.beginTransaction()
+                    .add(R.id.main_content, mCourseFragment, "course")
+                    .add(R.id.main_content, mTankFragment, "tank")
+                    .add(R.id.main_content, mEvaluateFragment, "evaluate")
+                    .show(mCourseFragment)
+                    .hide(mEvaluateFragment)
+                    .hide(mTankFragment)
+                    .commit();
         currentFragment = mCourseFragment;
     }
 

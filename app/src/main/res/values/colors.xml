@@ -36,4 +36,8 @@
     <color name="ZiSe">#2c3e58</color>
     <color name="bgGray">#50000000</color>
     <color name="LiteGray">#10000000</color>
+    <!--好学生的绿色-->
+    <color name="green">#FF0CCE57</color>
+    <!--差生的紫色-->
+    <color name="purple">#FF4A5280</color>
 </resources>

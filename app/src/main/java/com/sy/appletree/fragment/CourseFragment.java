@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +27,7 @@ import android.widget.Toast;
 import com.sy.appletree.R;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.preparelessons.AddLessonsActivity;
+import com.sy.appletree.preparelessons.AddLessonsActivity2;
 import com.sy.appletree.preparelessons.BeiKeActivity;
 import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
@@ -270,8 +272,8 @@ public class CourseFragment extends Fragment {
         mBaseRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddLessonsActivity.class);
-
+                Intent intent = new Intent(getActivity(), AddLessonsActivity2.class);
+                Log.e(getClass().getSimpleName(), "跳转到新增课程页面");
                 startActivity(intent);
             }
         });
