@@ -1,6 +1,7 @@
 package com.sy.appletree.preparelessons;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -256,6 +257,7 @@ public class AddLessonsActivity2 extends AppCompatActivity {
 
     private void addSubject(int id) {
         CheckBox checkBox = (CheckBox) findViewById(id);
+
         if (isCustom) {
             mSubjectList.add(checkBox.getTag().toString());
             SingleSubjectName = null;
@@ -286,7 +288,6 @@ public class AddLessonsActivity2 extends AppCompatActivity {
 
         CheckBox box = (CheckBox) findViewById(id);
         VersionDisplayName = box.getText().toString();
-        mLessons = box.getTag().toString();
         clearLessonChecked(box);
         clearSubjectChecked();
         clearGradChecked();
@@ -298,6 +299,8 @@ public class AddLessonsActivity2 extends AppCompatActivity {
                 checkBox.setChecked(false);
             }
         }
+        box.setChecked(true);
+        mLessons = box.getTag().toString();
     }
 
     private void clearSubjectChecked() {
@@ -420,31 +423,8 @@ public class AddLessonsActivity2 extends AppCompatActivity {
             NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
             if (numberVavlibleBean.getStatus().equals("y")) {
 
-                /**
-                 *  Intent intent = getIntent();
-                 mDanxuan = intent.getBooleanExtra("isCustom", true);
-                 kecheng = intent.getStringExtra("Name");
-                 jiaocai = intent.getStringExtra("Book");
-                 kemu = intent.getStringExtra("Subject");
-                 nianji = intent.getStringExtra("Grad");
-                 String ID = intent.getStringExtra("ID");
-                 */
 
-                //是不是单选（标准课程都是单选）
-                boolean isSingle = getIsSingle();
-                //课程的名称
-                String keCheng = mSubjectName1Display;
-                //标准课程的情况下的科目名称
-                if (SingleSubjectName != null) {
-                    String Subject = SingleSubjectName;
-                }
-                //教材版本
-                String Verson = VersionDisplayName;
-                //年级的拼接
-                String Grad = getGradDisplay();
-                //创建的课程的ID
-                String LessonID = (String) numberVavlibleBean.getData();
-                startstartBeiKeActivity();
+                startstartBeiKeActivity(numberVavlibleBean);
 
             } else {
                 toast(numberVavlibleBean.getInfo());
@@ -452,8 +432,48 @@ public class AddLessonsActivity2 extends AppCompatActivity {
         }
     }
 
-    private void startstartBeiKeActivity() {
+    private void startstartBeiKeActivity(NumberVavlibleBean numberVavlibleBean) {
+        /**
+         *  Intent intent = getIntent();
+         mDanxuan = intent.getBooleanExtra("isCustom", true);
+         kecheng = intent.getStringExtra("Name");
+         jiaocai = intent.getStringExtra("Book");
+         kemu = intent.getStringExtra("Subject");
+         nianji = intent.getStringExtra("Grad");
+         String ID = intent.getStringExtra("ID");
+         */
 
+        //是不是单选（标准课程都是单选）
+        boolean isSingle = getIsSingle();
+        //课程的名称
+        String keCheng = mSubjectName1Display;
+
+        //教材版本
+        String Verson = VersionDisplayName;
+        //年级的拼接
+        String Grad = getGradDisplay();
+        //创建的课程的ID
+        String LessonID = (String) numberVavlibleBean.getData().toString();
+
+        Intent intent = new Intent(this, BeiKeActivity.class);
+        intent.putExtra("isSingle", isSingle);
+        Log.e(getClass().getSimpleName(), isSingle ? "single":"coumost");
+        //标准课程的情况下的科目名称
+        if (SingleSubjectName != null) {
+            intent.putExtra("Subject", SingleSubjectName);
+            Log.e(getClass().getSimpleName(), SingleSubjectName);
+        }
+        intent.putExtra("Name", keCheng);
+        Log.e(getClass().getSimpleName(), keCheng);
+        intent.putExtra("Book", Verson);
+        Log.e(getClass().getSimpleName(), Verson);
+        intent.putExtra("Grad", Grad);
+        Log.e(getClass().getSimpleName(), Grad);
+        intent.putExtra("ID", LessonID);
+        Log.e(getClass().getSimpleName(), LessonID);
+
+        startActivity(intent);
+        finish();
     }
 
     private String getGradDisplay() {

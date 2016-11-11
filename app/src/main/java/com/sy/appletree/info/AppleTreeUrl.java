@@ -56,6 +56,12 @@ public class AppleTreeUrl {
 
     }
 
+    //拿到课程包下得小课程
+    public static class getCourse {
+        public static String PROTOCOL = "course_app_getCourse.action?";
+        public static String PARAMS_COURSE_PKG_ID = "coursePackageId";//要查询得小课程所属得课程包的ID
+    }
+
     //添加课程包下的小课程
     public static class ReleaseToWisomLib {
         public static String PROTOCOL = "course_app_releaseToWisomLib.action?";

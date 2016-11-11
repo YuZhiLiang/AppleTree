@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +27,11 @@ import android.widget.Toast;
 import com.sy.appletree.R;
 import com.sy.appletree.adapter.CourseAdapter;
 import com.sy.appletree.homepage.MainActivity;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.ModleBean.BeikeBean;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +39,7 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 /**
  * 备课
@@ -71,7 +77,7 @@ public class BeiKeActivity extends AppCompatActivity {
     private String nianji;
     private String kecheng;
     private boolean mDanxuan;
-    private CourseAdapter mCourseAdapter;
+    public CourseAdapter mCourseAdapter;
 
     private List<BeikeBean> mBeikeBeans = new ArrayList<>();
     private List<BeikeBean> mBeikeBeans1 = new ArrayList<>();
@@ -90,6 +96,7 @@ public class BeiKeActivity extends AppCompatActivity {
         }
     };
     private boolean mYuLan;
+    private String mID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +106,7 @@ public class BeiKeActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         getChuanZhi();
         setView();
+        getDtaaFromService();
         if (mYuLan) {
             for (int i = 0; i < 3; i++) {
                 BeikeBean beikeBean = new BeikeBean();
@@ -141,6 +149,34 @@ public class BeiKeActivity extends AppCompatActivity {
 
     }
 
+    private void getDtaaFromService() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.getCourse.PROTOCOL)
+                .append(AppleTreeUrl.getCourse.PARAMS_COURSE_PKG_ID + "=")
+                .append(mID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(mStringCallback);
+    }
+
+    StringCallback mStringCallback = new StringCallback() {
+        @Override
+        public void onError(Call call, Exception e, int id) {
+
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+
+        }
+    };
+
     /**
      * 赋初值
      */
@@ -175,7 +211,7 @@ public class BeiKeActivity extends AppCompatActivity {
         kemu = intent.getStringExtra("Subject");
         jiaocai = intent.getStringExtra("Book");
         nianji = intent.getStringExtra("Grad");
-        String ID = intent.getStringExtra("ID");
+        mID = intent.getStringExtra("ID");
     }
 
     @OnClick({R.id.base_left, R.id.base_right})
@@ -254,6 +290,7 @@ public class BeiKeActivity extends AppCompatActivity {
                     } else {
                         beikeBean.setMuBiao(mubiao.getText().toString());
                     }
+                    addBeiKeBean2Service();
                     mBeikeBeans.add(beikeBean);
                     mBeikeBeans1.clear();
                     mBeikeBeans1.addAll(mBeikeBeans);
@@ -288,6 +325,10 @@ public class BeiKeActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void addBeiKeBean2Service() {
+
     }
 
 }
