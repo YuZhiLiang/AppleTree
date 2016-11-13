@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@mipmap/navibar_bg_big"
+              android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="选择班级"
+        android:textColor="@color/myWhite"
+        android:textSize="22sp"/>
+
+    <ListView
+        android:id="@id/select_class_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/myWhite"
+
+        android:visibility="gone">
+    </ListView>
+
+    <TextView
+        android:id="@id/evaluate_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:background="@color/myWhite"
+        android:gravity="center"
+        android:text="暂无评价"
+        android:textColor="@color/textColor"
+        android:textSize="18sp"/>
+
+</LinearLayout>

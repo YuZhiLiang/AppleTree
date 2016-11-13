@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.sy.appletree"
-          xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.sy.appletree">
 
     <!-- 这个权限用于进行网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -105,6 +105,10 @@
         <activity android:name=".preparelessons.CreateTaskActivity">
         </activity>
         <activity android:name=".mycollection.MyCollectionActivity">
+        </activity>
+        <activity android:name=".evaluate.ShowEvaluateActivity">
+        </activity>
+        <activity android:name=".evaluate.EvaluateActivity">
         </activity>
     </application>
 

@@ -24,8 +24,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.CoursePkgListBean;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.preparelessons.AddLessonsActivity;
 import com.sy.appletree.preparelessons.AddLessonsActivity2;
 import com.sy.appletree.preparelessons.BeiKeActivity;
@@ -33,12 +37,15 @@ import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
 import com.sy.appletree.swipemenulistview.SwipeMenuItem;
 import com.sy.appletree.swipemenulistview.SwipeMenuListView;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import okhttp3.Call;
 
 /**
  * Created by Administrator on 2016/10/12.
@@ -74,6 +81,9 @@ public class CourseFragment extends Fragment {
     @Bind(R.id.course_content)
     RelativeLayout mCourseContent;
     private View mView;
+    public static final int FROME_GET_DATA_FROM_SERVICE = 1;
+    public static final int FROME_RELESE_TO_WISOM_LIB = 2;
+    public static final int FROME_DELETE_COURSE = 3;
 
     private MainActivity.MyOnClickListener mMyOnClickListener;
     private MainActivity.OCListener mOCListener;
@@ -92,8 +102,8 @@ public class CourseFragment extends Fragment {
             switch (msg.what) {
                 case 1:
                     int arg1 = msg.arg1;
-                    mStrings.remove(mStrings.get(arg1));
-                    mKeChengAdapter = new KeChengAdapter(mStrings);
+                    mCourseBeans.remove(mCourseBeans.get(arg1));
+                    mKeChengAdapter = new KeChengAdapter();
                     mCourseList.setAdapter(mKeChengAdapter);
                     break;
                 default:
@@ -135,7 +145,7 @@ public class CourseFragment extends Fragment {
     };
 
     private KeChengAdapter mKeChengAdapter;
-    private List<String> mStrings = new ArrayList<>();
+    private ArrayList<CoursePkgListBean.DataBean> mCourseBeans = new ArrayList<>();
 
 
     @Override
@@ -158,11 +168,7 @@ public class CourseFragment extends Fragment {
         //添加下部的添加课程条目
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.footview, null);
         mCourseList.addFooterView(view);
-
-        for (int i = 0; i < 5; i++) {
-            mStrings.add("" + i);
-        }
-        mKeChengAdapter = new KeChengAdapter(mStrings);
+        mKeChengAdapter = new KeChengAdapter();
         mCourseList.setAdapter(mKeChengAdapter);
 
         RelativeLayout layout = (RelativeLayout) view.findViewById(R.id.course_add);
@@ -175,13 +181,10 @@ public class CourseFragment extends Fragment {
 
                 switch (index) {
                     case 0:
-                        Toast.makeText(getActivity(), "假设发表了", Toast.LENGTH_SHORT).show();
+                        ReleaseToWisomLib(position);
                         break;
                     case 1:
-                        Message message = new Message();
-                        message.what = 1;
-                        message.arg1 = position;
-                        mHandler.sendMessage(message);
+                        delteCoursePackage(position);
                         break;
                     default:
                         break;
@@ -199,17 +202,15 @@ public class CourseFragment extends Fragment {
                 Toast.makeText(getActivity().getApplicationContext(), "条目点击了", Toast.LENGTH_SHORT).show();
                 //主页第一页的条目被点击跳转到具体的备课页面
                 Intent intent = new Intent(getActivity(), BeiKeActivity.class);
-                intent.putExtra("单选", true);
-                intent.putExtra("yuLan", true);
-                intent.putExtra("科目", "假装有课目");
-                intent.putExtra("教材", "假装选了教材");
-                intent.putExtra("年级", "假装是小学生");
-                intent.putExtra("课程", "就当是体育课吧");
+                intent.putExtra("yuLan", false);
+                intent.putExtra("isSingle", true);
+                intent.putExtra("Name", "这里该填那个字段");
+                intent.putExtra("Subject", "假装是数学");
+                intent.putExtra("Book", "反正我用的是人教版");
+                intent.putExtra("Grad", "高二好了");
+                intent.putExtra("ID", "68");
+                intent.putExtra("isNewCourse", false);
 
-//                intent.putExtra("科目",mMap_Subject.get("subject"));
-//                intent.putExtra("教材",mMap_Lesson.get("lesson"));
-//                intent.putExtra("年级", mMap_Grade.get("grade"));
-//                intent.putExtra("课程",mLessonEdit.getText().toString());
                 startActivity(intent);
             }
         });
@@ -242,13 +243,147 @@ public class CourseFragment extends Fragment {
 
     }
 
+    private void delteCoursePackage(int position) {
+        int courseId = mCourseBeans.get(position).getCourseId();
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.DelteCoursePackage.PROTOCOL)
+                .append(AppleTreeUrl.DelteCoursePackage.PARAMS_COURSE_PKG_ID + "=")
+                .append(String.valueOf(courseId) + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CourseFragmentStringCallBack(FROME_DELETE_COURSE, position));
+
+    }
+
+    private void ReleaseToWisomLib(int position) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.ReleaseToWisomLib.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.ReleaseToWisomLib.PARAMS_COURSE_PKG_ID + "=")
+                .append(mCourseBeans.get(position).getCourseId());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CourseFragmentStringCallBack(FROME_RELESE_TO_WISOM_LIB, 0));
+    }
+
 
     private void initView() {
 
     }
 
     private void initDate() {
+        getDataFromServer();
+    }
 
+    private void getDataFromServer() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetCoursePackage.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CourseFragmentStringCallBack(FROME_GET_DATA_FROM_SERVICE, 0));
+    }
+
+    class CourseFragmentStringCallBack extends StringCallback {
+        int fromWhere;
+        //位置，只有删除的时候才用得上，其他的两个方法用0就好了
+        private int position;
+
+        public CourseFragmentStringCallBack(int fromWhere, int position) {
+            this.fromWhere = fromWhere;
+            this.position = position;
+        }
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            switch (fromWhere) {
+                case 1:
+                    parseGetDataFromService(response, gson);
+                    break;
+                case 2:
+                    parasrReleaseToWisomLib(response, gson);
+                    break;
+                case 3:
+                    paraseDeleteCoursePkg(response, gson, position);
+                    break;
+            }
+
+
+        }
+    }
+
+    //删除课程包
+    private void paraseDeleteCoursePkg(String response, Gson gson, int position) {
+        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+        Log.e(getClass().getSimpleName(), numberVavlibleBean.toString());
+        if (numberVavlibleBean.getStatus().equals("y")) {
+            toast("删除成功");
+            mCourseBeans.remove(position);
+            mKeChengAdapter.notifyDataSetChanged();
+        }else {
+            toast(numberVavlibleBean.getInfo());
+        }
+//        Message message = new Message();
+//        message.what = 1;
+//        message.arg1 = position;
+//        mHandler.sendMessage(message);
+    }
+
+    //发表到智库
+    private void parasrReleaseToWisomLib(String response, Gson gson) {
+        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+
+        if (numberVavlibleBean.getStatus().equals("y")) {
+            toast("发表成功");
+        }else {
+            toast(numberVavlibleBean.getInfo());
+        }
+    }
+
+    private void parseGetDataFromService(String response, Gson gson) {
+
+        CoursePkgListBean coursePkgListBean = gson.fromJson(response, CoursePkgListBean.class);
+        if (coursePkgListBean.getStatus().equals("y")) {
+            getDataFromServerSuccess(coursePkgListBean);
+        } else {
+            getDataFromServerFaild(coursePkgListBean);
+        }
+    }
+
+    private void getDataFromServerSuccess(CoursePkgListBean coursePkgListBean) {
+        mCourseBeans.addAll(coursePkgListBean.getData());
+        mKeChengAdapter.notifyDataSetChanged();
+    }
+
+    private void getDataFromServerFaild(CoursePkgListBean coursePkgListBean) {
+        toast(coursePkgListBean.getInfo());
+    }
+
+    public void toast(String message) {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
     }
 
     private void initEvent() {
@@ -297,25 +432,19 @@ public class CourseFragment extends Fragment {
 
     public class KeChengAdapter extends BaseAdapter {
 
-        private List<String> mlist;
-
-        public KeChengAdapter(List<String> mlist) {
-            this.mlist = mlist;
-        }
-
         @Override
         public int getCount() {
-            return mlist.size();
+            return mCourseBeans.size() == 0 ? 0 : mCourseBeans.size();
         }
 
         @Override
-        public Object getItem(int position) {
-            return null;
+        public CoursePkgListBean.DataBean getItem(int position) {
+            return mCourseBeans.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -335,7 +464,12 @@ public class CourseFragment extends Fragment {
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            viewHolder.shijian.setText("" + mlist.get(position));
+            CoursePkgListBean.DataBean dataBean = mCourseBeans.get(position);
+            viewHolder.shijian.setText(dataBean.getName());
+            viewHolder.jiaocai.setText(dataBean.getVersion());
+            viewHolder.kemu.setText(dataBean.getSubject());
+            viewHolder.nianji.setText(dataBean.getUseGrade());
+            viewHolder.shijian.setText(dataBean.getCreateDateStr());
             return convertView;
         }
 

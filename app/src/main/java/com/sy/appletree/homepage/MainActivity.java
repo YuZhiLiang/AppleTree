@@ -19,7 +19,7 @@ import android.widget.Toast;
 import com.sy.appletree.R;
 import com.sy.appletree.evaluate.SetEvaluateActivity;
 import com.sy.appletree.fragment.CourseFragment;
-import com.sy.appletree.fragment.EvaluateFragment;
+import com.sy.appletree.fragment.EvluateClassSelectFragment;
 import com.sy.appletree.fragment.TankFragment;
 import com.sy.appletree.login_register.ChoosePlaceActivity;
 import com.sy.appletree.login_register.LoginAvtivity;
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FragmentManager mFragmentManager;
     private CourseFragment mCourseFragment;
     private TankFragment mTankFragment;
-    private EvaluateFragment mEvaluateFragment;
+    private EvluateClassSelectFragment mEvaluateFragment;
     private Fragment currentFragment = null;
 
     @Override
@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mFragmentManager = getFragmentManager();
             mCourseFragment = (CourseFragment) mFragmentManager.findFragmentByTag("course");
             mTankFragment = (TankFragment) mFragmentManager.findFragmentByTag("tank");
-            mEvaluateFragment = (EvaluateFragment) mFragmentManager.findFragmentByTag("evaluate");
+            mEvaluateFragment = (EvluateClassSelectFragment) mFragmentManager.findFragmentByTag("evaluate");
         } else {
             initFragment();
         }
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initFragment() {
         mCourseFragment = new CourseFragment();
-        mEvaluateFragment = new EvaluateFragment();
+        mEvaluateFragment = new EvluateClassSelectFragment();
         mTankFragment = new TankFragment();
         mFragmentManager = getFragmentManager();
 

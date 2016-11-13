@@ -27,5 +27,6 @@ public class Const {
 
     public static final String CACHE_SCHOOL="cacheSchool";//目前选择学校
 
+    public static final boolean isDeBug = true;
 
 }

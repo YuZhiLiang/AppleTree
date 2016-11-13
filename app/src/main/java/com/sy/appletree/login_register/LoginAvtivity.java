@@ -86,7 +86,7 @@ public class LoginAvtivity extends AppCompatActivity {
     }
 
     private void loging(String user, String pass) {
-        String baseUrl = AppleTreeUrl.sRootUrl + AppleTreeUrl.Loging.PROTOCOL;
+              String baseUrl = AppleTreeUrl.sRootUrl + AppleTreeUrl.Loging.PROTOCOL;
         Map<String, Object> params = new HashMap<>();
         String MD5Password = CheckForAllUtils.getMD5(pass);//MD5
         params.put(AppleTreeUrl.Loging.PARAMS_USERNAME, user);

@@ -29,6 +29,7 @@ import com.sy.appletree.bean.BeiKeActivityListBean;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -78,11 +79,14 @@ public class BeiKeActivity extends AppCompatActivity {
     private String kecheng;
     private boolean mDanxuan;
     private CourseAdapter mCourseAdapter;
+    private boolean mYuLan;
+    private String mID;
+    private boolean mIsNewCourse = false;
 
     private List<BeiKeActivityListBean.DataBean> mBeikeBeans = new ArrayList<>();
     private List<BeiKeActivityListBean.DataBean> mBeikeBeans1 = new ArrayList<>();
 
-//    private Handler mHandler = new Handler() {
+    //    private Handler mHandler = new Handler() {
 //        @Override
 //        public void handleMessage(Message msg) {
 //
@@ -95,9 +99,7 @@ public class BeiKeActivity extends AppCompatActivity {
 //            }
 //        }
 //    };
-    private boolean mYuLan;
-    private String mID;
-    private boolean mIsNewCourse;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +117,7 @@ public class BeiKeActivity extends AppCompatActivity {
     private void getData() {
         if (!mIsNewCourse) {
             getDataFromService();
-        }else {
+        } else {
             mCourseAdapter = new CourseAdapter(mBeikeBeans1, false);
             mCourseList.setAdapter(mCourseAdapter);
         }
@@ -127,11 +129,16 @@ public class BeiKeActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //点击课程跳转到预览任务列表
                 Intent intent = new Intent(BeiKeActivity.this, TaskListActivity.class);
+                int courseId = mBeikeBeans1.get(position).getCourseId();//小课程ID
                 if (mYuLan) {
+                    intent.putExtra("courseID", String.valueOf(courseId));//添加小课程ID
                     intent.putExtra("yuLan", true);
+
                 } else {
+                    intent.putExtra("courseID", String.valueOf(courseId));//添加小课程ID
                     intent.putExtra("yuLan", false);
                 }
+                intent.putExtra("isNewCourse", mIsNewCourse);//是不是新创建的任务（需不需要请求服务器）
                 startActivity(intent);
             }
         });
@@ -155,8 +162,8 @@ public class BeiKeActivity extends AppCompatActivity {
     private void getDataFromService() {
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
-                .append(AppleTreeUrl.getCourse.PROTOCOL)
-                .append(AppleTreeUrl.getCourse.PARAMS_COURSE_PKG_ID + "=")
+                .append(AppleTreeUrl.GetCourse.PROTOCOL)
+                .append(AppleTreeUrl.GetCourse.PARAMS_COURSE_PKG_ID + "=")
 //                .append(mID + "&")
                 .append("70" + "&")
                 .append(AppleTreeUrl.sSession + "=")
@@ -182,7 +189,7 @@ public class BeiKeActivity extends AppCompatActivity {
             BeiKeActivityListBean ListBean = gson.fromJson(response, BeiKeActivityListBean.class);
             if (ListBean.getStatus().equals("y")) {
                 getListItemFromResponceAndSetAdapter(ListBean.getData());
-            }else {
+            } else {
                 toast("获取课程列表失败");
             }
 
@@ -237,8 +244,12 @@ public class BeiKeActivity extends AppCompatActivity {
         kemu = intent.getStringExtra("Subject");//科目
         jiaocai = intent.getStringExtra("Book");//哪个版本
         nianji = intent.getStringExtra("Grad");//年级
-        mID = intent.getStringExtra("ID");//课程包的ID
-        mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
+        if (Const.isDeBug) {
+            mID = "68";
+        } else {
+            mID = intent.getStringExtra("ID");//课程包的ID
+            mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
+        }
     }
 
     @OnClick({R.id.base_left, R.id.base_right})
@@ -351,11 +362,11 @@ public class BeiKeActivity extends AppCompatActivity {
     private void addBiKeBean(BeiKeActivityListBean.DataBean beikeBean) {
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
-                .append(AppleTreeUrl.addCourse.PROTOCOL)
-                .append(AppleTreeUrl.addCourse.PARAMS_COURSE_PACKAGE_ID + "=")
+                .append(AppleTreeUrl.AddCourse.PROTOCOL)
+                .append(AppleTreeUrl.AddCourse.PARAMS_COURSE_PACKAGE_ID + "=")
 //                .append(mID)
                 .append("70" + "&")
-                .append(AppleTreeUrl.addCourse.PARAMS_NAME + "=")
+                .append(AppleTreeUrl.AddCourse.PARAMS_NAME + "=")
                 .append(beikeBean.getCourseName() + "&")
                 .append(AppleTreeUrl.sSession + "=")
                 .append(SPUtils.getSession());
@@ -371,7 +382,7 @@ public class BeiKeActivity extends AppCompatActivity {
                 .execute(new addBeiKeBean2ServiceStringCallBack(beikeBean));
     }
 
-    class addBeiKeBean2ServiceStringCallBack extends StringCallback{
+    class addBeiKeBean2ServiceStringCallBack extends StringCallback {
         BeiKeActivityListBean.DataBean mBeikeBean;
 
         public addBeiKeBean2ServiceStringCallBack(BeiKeActivityListBean.DataBean beikeBean) {
@@ -391,7 +402,7 @@ public class BeiKeActivity extends AppCompatActivity {
             if (numberVavlibleBean.getStatus().equals("y")) {
                 mBeikeBean.setCourseId(Integer.parseInt(numberVavlibleBean.getData().toString()));
                 addBeiKeBean2ServiceSeccess(mBeikeBean);
-            }else {
+            } else {
                 addBeiKeBean2ServiceFaild(numberVavlibleBean);
             }
         }

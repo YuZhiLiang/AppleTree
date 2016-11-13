@@ -1,6 +1,5 @@
 package com.sy.appletree.preparelessons;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
@@ -19,6 +18,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,10 +35,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.evaluate.SetEvaluateActivity;
+import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.MyGridView;
 import com.sy.appletree.views.MyListView;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,6 +57,7 @@ import java.util.Locale;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 /**
  * 创建任务或编辑任务
@@ -79,18 +86,18 @@ public class CreateTaskActivity extends AppCompatActivity {
     Button mCreatTaskDel;
     @Bind(R.id.link_text)
     MyGridView mLinkText;
-    private Handler mHandler=new Handler(){
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
 
-            switch (msg.what){
+            switch (msg.what) {
 
                 case 1://更新图片
                     mPicAdapter.notifyDataSetChanged();
-                break;
+                    break;
                 case 2://更新链接
                     mLinkAdapter.notifyDataSetChanged();
-                break;
+                    break;
                 case 3://
 
                     break;
@@ -105,30 +112,38 @@ public class CreateTaskActivity extends AppCompatActivity {
     private PicAdapter mPicAdapter;
     private LinkAdapter mLinkAdapter;
     private ZhiBiaoAdapter mZhiBiaoAdapter;
-    private List<Bitmap> mBitmaps=new ArrayList<>();//图片源
-    private List<Bitmap> mBitmaps1=new ArrayList<>();//图片源==
-    private List<String> mStrings=new ArrayList<>();//链接数据源
-    private List<String> mStrings1=new ArrayList<>();//链接数据源==
-    private List<String> mStrings2=new ArrayList<>();
+    private List<Bitmap> mBitmaps = new ArrayList<>();//图片源
+    private List<Bitmap> mBitmaps1 = new ArrayList<>();//图片源==
+    private List<String> mStrings = new ArrayList<>();//链接数据源
+    private List<String> mStrings1 = new ArrayList<>();//链接数据源==
+    private List<String> mStrings2 = new ArrayList<>();
+    private String mCourseID;
+    private String mTaskID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_task);
         ButterKnife.bind(this);
-        getTAG();
+        getDataFromIntent();
         setView();
 
+
         //图片
-        mPicAdapter=new PicAdapter(mBitmaps1);
+        mPicAdapter = new PicAdapter(mBitmaps1);
         mLinkList.setAdapter(mPicAdapter);
         //链接
-        mLinkAdapter=new LinkAdapter(mStrings1);
+        mLinkAdapter = new LinkAdapter(mStrings1);
         mLinkText.setAdapter(mLinkAdapter);
-
         //指标
-        mZhiBiaoAdapter=new ZhiBiaoAdapter(mStrings2);
+        mZhiBiaoAdapter = new ZhiBiaoAdapter(mStrings2);
         mTianjiaPjList.setAdapter(mZhiBiaoAdapter);
+    }
+
+    private void getDataFromIntent() {
+        Intent intent = getIntent();
+        mCourseID = intent.getStringExtra("courseID");
+        mTAG = intent.getStringExtra("tag");
     }
 
     private void setView() {
@@ -143,11 +158,6 @@ public class CreateTaskActivity extends AppCompatActivity {
 
             mCreatTaskDel.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void getTAG() {
-        Intent intent = getIntent();
-        mTAG = intent.getStringExtra("tag");
     }
 
     @OnClick({R.id.base_left, R.id.base_right, R.id.creat_task_addFJ, R.id.creat_task_addPJ, R.id.creat_task_del})
@@ -168,16 +178,16 @@ public class CreateTaskActivity extends AppCompatActivity {
                 break;
             case R.id.creat_task_addPJ:
                 //启动评价页面添加评价
-                Intent intent=new Intent(CreateTaskActivity.this, SetEvaluateActivity.class);
-                intent.putExtra("tag","task");
-                startActivityForResult(intent,10);
+                Intent intent = new Intent(CreateTaskActivity.this, SetEvaluateActivity.class);
+                intent.putExtra("tag", "task");
+                startActivityForResult(intent, 10);
                 break;
             case R.id.creat_task_del:
                 //编辑页才会有删除
                 //删除执行请求删除该任务id的任务
                 Intent intent1 = getIntent();
                 DelTask();
-                setResult(2,intent1);
+                setResult(2, intent1);
                 finish();
                 break;
         }
@@ -200,6 +210,7 @@ public class CreateTaskActivity extends AppCompatActivity {
         //底部显示
         popupWindow.showAtLocation(contentView, Gravity.CENTER, 0, 0);
     }
+
     private void screenBrighter() {
         WindowManager.LayoutParams params = CreateTaskActivity.this.getWindow().getAttributes();
         params.alpha = 1f;
@@ -282,12 +293,12 @@ public class CreateTaskActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!TextUtils.isEmpty(link.getText().toString())){
+                if (!TextUtils.isEmpty(link.getText().toString())) {
                     mStrings.add(link.getText().toString());
                     mStrings1.clear();
                     mStrings1.addAll(mStrings);
-                    Message message=new Message();
-                    message.what=2;
+                    Message message = new Message();
+                    message.what = 2;
                     mHandler.sendMessage(message);
                 }
                 if (popupWindow != null && popupWindow.isShowing()) {
@@ -338,8 +349,8 @@ public class CreateTaskActivity extends AppCompatActivity {
         popupWindow.setTouchable(true);
         //进入退出的动画
         popupWindow.setAnimationStyle(R.style.mypopwindow_anim_style);
-        Button button1= (Button) contentView.findViewById(R.id.back_save);
-        Button button2= (Button) contentView.findViewById(R.id.back_abnden);
+        Button button1 = (Button) contentView.findViewById(R.id.back_save);
+        Button button2 = (Button) contentView.findViewById(R.id.back_abnden);
 
 
         button1.setOnClickListener(new View.OnClickListener() {
@@ -379,11 +390,77 @@ public class CreateTaskActivity extends AppCompatActivity {
      * 保存数据
      */
     private void SaveData() {
+        if (TextUtils.isEmpty(mCreatTaskName.getText().toString().trim()) || TextUtils.isEmpty(mCreatTaskContent.getText().toString().trim())) {
+            toast("请输入任务标题及内容");
+            return;
+        }
 
+        saveTask2Service(mCreatTaskName.getText().toString().trim(), mCreatTaskContent.getText().toString().trim());
+    }
 
+    private void saveTask2Service(String taskTitle, String taskContent) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.AddTask.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.AddTask.PARAMS_COURSE_ID + "=")
+                .append(mCourseID + "&").append(AppleTreeUrl.AddTask.PARAMS_NAME + "=")
+                .append(taskTitle + "&")
+                .append(AppleTreeUrl.AddTask.PARAMS_CONTENT + "=")
+                .append(taskContent);
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CreatTaskActivityCallBack(taskTitle, taskContent));
+    }
 
-        //完成之后
+    class CreatTaskActivityCallBack extends StringCallback {
+        String mTaskTitle;
+        String mTaskContent;
+
+        public CreatTaskActivityCallBack(String taskTitle, String taskContent) {
+            mTaskTitle = taskTitle;
+            mTaskContent = taskContent;
+        }
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName() + "Response", response);
+            Gson gson = new Gson();
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                onAddTask2ServiceSuccess(numberVavlibleBean, mTaskTitle, mTaskContent);
+            } else {
+                onAddTask2ServiceFaild(numberVavlibleBean, mTaskTitle, mTaskContent);
+            }
+        }
+    }
+
+    private void onAddTask2ServiceSuccess(NumberVavlibleBean numberVavlibleBean, String taskTitle, String taskContent) {
+        mTaskID = (String) numberVavlibleBean.getData().toString();
+        String taskName = taskTitle;
+        Intent intent = getIntent();
+        intent.putExtra("getTaskName", taskName);
+        intent.putExtra("getTaskID", mTaskID);
+        Log.e(getClass().getSimpleName(), "设置回传值");
+        setResult(RESULT_OK, intent);
         finish();
+    }
+
+    private void onAddTask2ServiceFaild(NumberVavlibleBean numberVavlibleBean, String taskTitle, String taskContent) {
+        toast(numberVavlibleBean.getInfo());
+    }
+
+    public void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private AlertDialog alertDialog;
@@ -439,7 +516,7 @@ public class CreateTaskActivity extends AppCompatActivity {
     //当从评价页面回来时
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICTURE && resultCode == Activity.RESULT_OK && null != data) {
+        if (requestCode == PICTURE && resultCode == RESULT_OK && null != data) {
 
             Uri selectedImage = data.getData();
             String[] filePathColumns = {MediaStore.Images.Media.DATA};
@@ -452,10 +529,10 @@ public class CreateTaskActivity extends AppCompatActivity {
             Bitmap bitmap = getDiskBitmap(picturePath);
 //            mSetHeadIcon.setImageBitmap(bitmap);
             //上传头像
-            UpLoading(mFile,bitmap);//上传头像方法
+            UpLoading(mFile, bitmap);//上传头像方法
 
         }
-        if (requestCode == CAMERA && resultCode == Activity.RESULT_OK && null != data) {
+        if (requestCode == CAMERA && resultCode == RESULT_OK && null != data) {
             String sdState = Environment.getExternalStorageState();
             if (!sdState.equals(Environment.MEDIA_MOUNTED)) {
                 return;
@@ -486,15 +563,15 @@ public class CreateTaskActivity extends AppCompatActivity {
             //显示图片
 //            mSetHeadIcon.setImageBitmap(bitmap);
 
-            creat(filename,bitmap);
+            creat(filename, bitmap);
 
         }
 
 
-        if (requestCode==10&&resultCode==11){
+        if (requestCode == 10 && resultCode == 11) {
             int pingjia = data.getIntExtra("pingjia", -1);
             mStrings2.add("");
-            Toast.makeText(CreateTaskActivity.this,"选择了指标"+pingjia,Toast.LENGTH_SHORT).show();
+            Toast.makeText(CreateTaskActivity.this, "选择了指标" + pingjia, Toast.LENGTH_SHORT).show();
 
             mZhiBiaoAdapter.notifyDataSetChanged();
         }
@@ -502,24 +579,25 @@ public class CreateTaskActivity extends AppCompatActivity {
 
     /**
      * 图片上传
+     *
      * @param file
      */
-    private void UpLoading(File file,Bitmap bitmap) {
+    private void UpLoading(File file, Bitmap bitmap) {
         Toast.makeText(CreateTaskActivity.this, "拿到图片了", Toast.LENGTH_SHORT).show();
 
         mBitmaps.add(bitmap);
         mBitmaps1.clear();
         mBitmaps1.addAll(mBitmaps);
-        Message message=new Message();
-        message.what=1;
+        Message message = new Message();
+        message.what = 1;
         mHandler.sendMessage(message);
 
     }
 
     //创建文件
-    public void creat(String path,Bitmap bitmap) {
+    public void creat(String path, Bitmap bitmap) {
         mFile = new File(path);
-        UpLoading(mFile,bitmap);
+        UpLoading(mFile, bitmap);
     }
 
     private Bitmap getDiskBitmap(String pathString) {
@@ -665,10 +743,10 @@ public class CreateTaskActivity extends AppCompatActivity {
             if (convertView == null) {
                 viewHolder = new ViewHolder();
                 convertView = LayoutInflater.from(parent.getContext()).inflate(R.layout.task_pingjia_item, null);
-                viewHolder.mImageView_icon= (ImageView) convertView.findViewById(R.id.pingjia_icon);
-                viewHolder.mImageView_close= (ImageView) convertView.findViewById(R.id.pingjia_close);
-                viewHolder.name= (TextView) convertView.findViewById(R.id.pingjia_name);
-                viewHolder.content= (TextView) convertView.findViewById(R.id.pingjia_content);
+                viewHolder.mImageView_icon = (ImageView) convertView.findViewById(R.id.pingjia_icon);
+                viewHolder.mImageView_close = (ImageView) convertView.findViewById(R.id.pingjia_close);
+                viewHolder.name = (TextView) convertView.findViewById(R.id.pingjia_name);
+                viewHolder.content = (TextView) convertView.findViewById(R.id.pingjia_content);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();

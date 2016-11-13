@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,18 +18,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.TaskListBean;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
 import com.sy.appletree.swipemenulistview.SwipeMenuItem;
 import com.sy.appletree.swipemenulistview.SwipeMenuListView;
+import com.sy.appletree.utils.Const;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 /**
  * 预览课目任务列表
@@ -78,23 +86,30 @@ public class TaskListActivity extends AppCompatActivity {
         }
     };
 
-    private List<String> mStrings = new ArrayList<>();
+    private ArrayList<TaskListBean.DataBean> DataBeans = new ArrayList<>();
     private boolean mYuLan;
+    private boolean mIsNewCourse;
+    private String mCourseID;
+    private int mRequestCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_task_list);
         ButterKnife.bind(this);
-        mYuLan = getIntent().getBooleanExtra("yuLan", false);
-        getListSize();
+        getIntentData();
+        getData();
         if (!mYuLan) {
             mTaskTitle.setText("预览任务列表");
             mSwipTaskList.setMenuCreator(creator);
         }
-        mSwipeTaskAdapter = new SwipeTaskAdapter(mStrings);
+        mSwipeTaskAdapter = new SwipeTaskAdapter(DataBeans);
         mSwipTaskList.setAdapter(mSwipeTaskAdapter);
+        initEvent();
 
+    }
+
+    private void initEvent() {
         /**
          * menu点击事件
          */
@@ -138,20 +153,73 @@ public class TaskListActivity extends AppCompatActivity {
 
             }
         });
-
-
     }
 
-    private void getListSize() {
-        mStrings.add("我是任务一");
-        mStrings.add("我是任务二");
-        mStrings.add("我是任务三");
-        if (mStrings.size() == 0) {
-            mTaskEmpty.setVisibility(View.VISIBLE);
-            mTaskHave.setVisibility(View.GONE);
+    private void getData() {
+        if (mIsNewCourse) {
+            initEmptyData();
         } else {
             mTaskEmpty.setVisibility(View.GONE);
             mTaskHave.setVisibility(View.VISIBLE);
+            getDataFromeService();
+        }
+    }
+
+    private void initEmptyData() {
+        mTaskEmpty.setVisibility(View.VISIBLE);
+        mTaskHave.setVisibility(View.GONE);
+        Log.e(getClass().getSimpleName(), "空页面");
+    }
+
+    private void getDataFromeService() {
+        Log.e(getClass().getSimpleName(), "来拿服务器数据");
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetTaskList.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.GetTaskList.PARAMS_COURSE_ID + "=")
+                .append(mCourseID);
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new TaskListActivityStringCallBack());
+    }
+
+    //请求服务器的监听回调
+    class TaskListActivityStringCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            TaskListBean taskListBean = gson.fromJson(response, TaskListBean.class);
+            DataBeans.addAll(taskListBean.getData());
+            mSwipeTaskAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void getIntentData() {
+        Intent intent = getIntent();
+        mYuLan = intent.getBooleanExtra("yuLan", false);
+        //是不是新任务
+        mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);
+        //拿到小课程ID
+        if(Const.isDeBug) {
+            mCourseID = "68";
+        }else {
+            mCourseID = intent.getStringExtra("courseID");
         }
     }
 
@@ -162,11 +230,17 @@ public class TaskListActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.task_btn:
-                Intent intent = new Intent(TaskListActivity.this, CreateTaskActivity.class);
-                intent.putExtra("tag", "add");
-                startActivityForResult(intent, 1);
+                addNewTask();
                 break;
         }
+    }
+
+    //添加新任务
+    private void addNewTask() {
+        Intent intent = new Intent(TaskListActivity.this, CreateTaskActivity.class);
+        intent.putExtra("tag", "add");
+        intent.putExtra("courseID", mCourseID);
+        startActivityForResult(intent, mRequestCode);
     }
 
 
@@ -188,9 +262,9 @@ public class TaskListActivity extends AppCompatActivity {
 
     public class SwipeTaskAdapter extends BaseAdapter {
 
-        private List<String> mList;
+        private ArrayList<TaskListBean.DataBean> mList;
 
-        public SwipeTaskAdapter(List<String> list) {
+        public SwipeTaskAdapter(ArrayList<TaskListBean.DataBean> list) {
             mList = list;
         }
 
@@ -201,12 +275,12 @@ public class TaskListActivity extends AppCompatActivity {
 
         @Override
         public Object getItem(int position) {
-            return null;
+            return position;
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -220,7 +294,7 @@ public class TaskListActivity extends AppCompatActivity {
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            viewHolder.mTextView.setText(mList.get(position));
+            viewHolder.mTextView.setText(mList.get(position).getTaskName());
 
             return convertView;
         }
@@ -233,11 +307,29 @@ public class TaskListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == 2) {
-            int weizhi = data.getIntExtra("weizhi", -1);
-            mStrings.remove(weizhi);
+        Log.e(getClass().getSimpleName(), requestCode + "-" + resultCode + data);
+        if (requestCode == mRequestCode && resultCode == RESULT_OK) {
+            Log.e(getClass().getSimpleName(), "拿到ActivityResult响应");
+//            Intent intent = getIntent();
+            String taskName = data.getStringExtra("getTaskName");
+            String taskID = data.getStringExtra("getTaskID");
+            TaskListBean.DataBean taskbean = new TaskListBean.DataBean();
+            taskbean.setTaskName(taskName);
+            taskbean.setTaskId(Integer.valueOf(taskID));
+            mTaskEmpty.setVisibility(View.GONE);
+            mTaskHave.setVisibility(View.VISIBLE);
+            DataBeans.add(taskbean);
             mSwipeTaskAdapter.notifyDataSetChanged();
 
+        } else {
+            Log.e(getClass().getSimpleName(), "获取返回值失败");
         }
+
+
+//            int weizhi = data.getIntExtra("weizhi", -1);
+//            mStrings.remove(weizhi);
+//            mSwipeTaskAdapter.notifyDataSetChanged();
+//        }
+
     }
 }

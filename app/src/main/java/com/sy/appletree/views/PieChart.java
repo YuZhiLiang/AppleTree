@@ -56,7 +56,7 @@ public class PieChart extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         mHeigth = MeasureSpec.getSize(heightMeasureSpec);
         mWidth = mHeigth;
-        mOval = new RectF(20, 20, mWidth - 40, mHeigth - 40);
+        mOval = new RectF(10, 10, mWidth - 20, mHeigth - 20);
         setMeasuredDimension(mWidth,mHeigth);
     }
 
@@ -75,8 +75,8 @@ public class PieChart extends View {
         canvas.drawArc(mOval, badStart, badSweep, useCenter, mBadPaint);
 
         //画线
-        float startX = mWidth * 0.75f - 10, startY = mHeigth * 0.25f - 10;
-        float stopX = mWidth * 0.25f -10, stopY = mHeigth * 0.75f - 10;
+        float startX = mWidth * 0.75f - 5, startY = mHeigth * 0.25f - 5;
+        float stopX = mWidth * 0.25f -5, stopY = mHeigth * 0.75f - 5;
         canvas.drawLine(startX, startY, stopX, stopY, mLinePaint);
 
     }
