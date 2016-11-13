@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.sy.appletree.R;
+import com.sy.appletree.base.BaseApplication;
 import com.sy.appletree.evaluate.EvaluateActivity;
 import com.sy.appletree.utils.Const;
 
@@ -106,7 +107,7 @@ public class EvluateClassSelectFragment extends Fragment {
             ViewHolder holder;
             if (convertView == null) {
                 holder = new ViewHolder();
-                convertView = View.inflate(getContext(), R.layout.class_select_item, null);
+                convertView = View.inflate(BaseApplication.getContext(), R.layout.class_select_item, null);
                 holder.mTextView = (TextView) convertView.findViewById(R.id.select_class_list_item_text);
                 convertView.setTag(holder);
             }else {

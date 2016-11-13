@@ -15,4 +15,7 @@
     <item name="select_class_list_view" type="id"/>
     <item name="evaluate_empty" type="id"/>
     <item name="select_class_list_item_text" type="id"/>
+    <item name="student_evaluate" type="id"/>
+    <item name="class_evaluate" type="id"/>
+    <item name="group_evaluate" type="id"/>
 </resources>

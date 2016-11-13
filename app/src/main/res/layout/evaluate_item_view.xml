@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="20dp">
+
+    <TextView
+        android:id="@+id/evaluate_detail_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
+        android:text="动手能力"
+        android:textSize="22sp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@mipmap/bg_group01"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/evaluate_detail_item_group_num"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="001"
+            android:textColor="@color/myWhite"/>
+
+        <TextView
+            android:id="@+id/evaluate_detail_item_fraction"
+            android:layout_width="25dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@mipmap/bg_score_green"
+            android:gravity="center"
+            android:text="+3"
+            android:textColor="@color/myWhite"/>
+
+    </RelativeLayout>
+
+    <com.sy.appletree.views.MyGridView
+        android:id="@+id/evaluate_detail_item_grid_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:numColumns="4">
+    </com.sy.appletree.views.MyGridView>
+
+</LinearLayout>
