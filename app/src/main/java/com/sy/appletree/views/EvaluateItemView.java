@@ -2,13 +2,15 @@ package com.sy.appletree.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sy.appletree.R;
 import com.sy.appletree.base.BaseApplication;
@@ -34,6 +36,7 @@ public class EvaluateItemView extends LinearLayout {
     @Bind(R.id.evaluate_detail_item_grid_view)
     GridView mEvaluateDetailItemGridView;
     ArrayList Datas = new ArrayList();
+    onEvaluateDetailItemOnClickListener mOnEvaluateDetailItemOnClickListener;
 
     public EvaluateItemView(Context context) {
         this(context, null);
@@ -52,6 +55,30 @@ public class EvaluateItemView extends LinearLayout {
         mEvaluateDetailItemGroupNum.setText("007");
         mEvaluateDetailItemFraction.setText("+5");
         mEvaluateDetailItemGridView.setAdapter(new EvaluateDetailItemGridViewAdapter());
+        mEvaluateDetailItemGridView.setOnItemClickListener(mOnGridClickListener);
+    }
+
+    AdapterView.OnItemClickListener mOnGridClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            //点击了分组或学生的条目
+            if (mOnEvaluateDetailItemOnClickListener != null) {
+                mOnEvaluateDetailItemOnClickListener.onEvaluateDetailItemOnClick(position);
+            }
+        }
+    };
+
+    public void setOnEvaluateDetailItemOnClickListener(onEvaluateDetailItemOnClickListener onEvaluateDetailItemOnClickListener) {
+        mOnEvaluateDetailItemOnClickListener = onEvaluateDetailItemOnClickListener;
+    }
+
+    //分组或学生的条目的的点击监听
+    public interface onEvaluateDetailItemOnClickListener {
+        void onEvaluateDetailItemOnClick(int position);
+    }
+
+    public void toast(String message) {
+        Toast.makeText(BaseApplication.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private void mockData() {
@@ -79,8 +106,7 @@ public class EvaluateItemView extends LinearLayout {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            TextView tx = new TextView(BaseApplication.getContext());
-            tx.setGravity(Gravity.CENTER);
+            TextView tx = (TextView) LayoutInflater.from(BaseApplication.getContext()).inflate(R.layout.name_text_view, parent, false);
             tx.setText(Datas.get(position).toString());
             return tx;
         }

@@ -12,21 +12,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.sy.appletree.R;
-import com.sy.appletree.bean.ValAuthCodeBean;
-import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.utils.http_about_utils.HttpUtils;
-import com.zhy.http.okhttp.OkHttpUtils;
-import com.zhy.http.okhttp.callback.StringCallback;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.sy.appletree.base.BaseApplication;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import okhttp3.Call;
 
 /**
  * 验证帐号
@@ -37,16 +28,24 @@ public class AuthcodeActivity extends AppCompatActivity {
     Button mCodeBtn;
     @Bind(R.id.register_phone)
     EditText mAuthCode;
+    private String mIde;
+    private String mPhoneNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authcode);
         ButterKnife.bind(this);
-
+        getIntentData();
 
         downActivity();
 
+    }
+
+    private void getIntentData() {
+        Intent intent = getIntent();
+        mIde = intent.getStringExtra("IDE");
+        mPhoneNum = intent.getStringExtra("phoneNum");
     }
 
     @OnClick(R.id.code_btn)
@@ -66,30 +65,14 @@ public class AuthcodeActivity extends AppCompatActivity {
 
     //检查验证码是否正确
     private void checkEquse(String authCode) {
-        //TODO 检查验证码
-        Map<String, Object> params = new HashMap<>();
-        params.put(AppleTreeUrl.ValCode.PARAMS_VAI_CODE, authCode);
-        String url = AppleTreeUrl.sRootUrl + AppleTreeUrl.ValCode.PROTOCOL
-                + HttpUtils.getUrlParamsByMap(params);
-
-        Log.e("带上验证码访问的Url", url);
-        OkHttpUtils
-                .get()
-                .url(url)
-                .build()
-                .execute(new StringCallback() {
-                    @Override
-                    public void onError(Call call, Exception e, int id) {
-                        Toast.makeText(getApplicationContext(), "网络链接出错了", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onResponse(String response, int id) {
-                        Gson gson = new Gson();
-                        ValAuthCodeBean valAuthCodeBean = gson.fromJson(response, ValAuthCodeBean.class);
-                        Log.e("拿到网络响应了", valAuthCodeBean.getStatus() + valAuthCodeBean.getData() + valAuthCodeBean.getInfo());
-                    }
-                });
+        if (authCode.equals(mIde)) {
+            Intent intent = new Intent(this, PresonalInfoActivity.class);
+            intent.putExtra("phoneNum", mPhoneNum);
+            startActivity(intent);
+            finish();
+        }else {
+            Toast.makeText(BaseApplication.getContext(), "验证码错误", Toast.LENGTH_SHORT).show();
+        }
     }
 
 

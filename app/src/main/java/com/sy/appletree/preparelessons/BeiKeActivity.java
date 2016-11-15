@@ -29,7 +29,6 @@ import com.sy.appletree.bean.BeiKeActivityListBean;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -85,21 +84,6 @@ public class BeiKeActivity extends AppCompatActivity {
 
     private List<BeiKeActivityListBean.DataBean> mBeikeBeans = new ArrayList<>();
     private List<BeiKeActivityListBean.DataBean> mBeikeBeans1 = new ArrayList<>();
-
-    //    private Handler mHandler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//
-//            switch (msg.what) {
-//                case 1:
-//                    mCourseAdapter.notifyDataSetChanged();
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,8 +148,8 @@ public class BeiKeActivity extends AppCompatActivity {
         url.append(AppleTreeUrl.sRootUrl)
                 .append(AppleTreeUrl.GetCourse.PROTOCOL)
                 .append(AppleTreeUrl.GetCourse.PARAMS_COURSE_PKG_ID + "=")
-//                .append(mID + "&")
-                .append("70" + "&")
+                .append(mID + "&")
+//                .append("70" + "&")
                 .append(AppleTreeUrl.sSession + "=")
                 .append(SPUtils.getSession());
         Log.e(getClass().getSimpleName(), url.toString());
@@ -244,12 +228,8 @@ public class BeiKeActivity extends AppCompatActivity {
         kemu = intent.getStringExtra("Subject");//科目
         jiaocai = intent.getStringExtra("Book");//哪个版本
         nianji = intent.getStringExtra("Grad");//年级
-        if (Const.isDeBug) {
-            mID = "68";
-        } else {
-            mID = intent.getStringExtra("ID");//课程包的ID
-            mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
-        }
+        mID = intent.getStringExtra("ID");//课程包的ID
+        mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
     }
 
     @OnClick({R.id.base_left, R.id.base_right})

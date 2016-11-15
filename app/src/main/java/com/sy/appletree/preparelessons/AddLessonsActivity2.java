@@ -249,7 +249,6 @@ public class AddLessonsActivity2 extends AppCompatActivity {
     }
 
     private void hideKeyBord() {
-
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mSubjectName.getWindowToken(), 0);
 

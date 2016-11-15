@@ -30,8 +30,7 @@ import com.sy.appletree.bean.CoursePkgListBean;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.preparelessons.AddLessonsActivity;
-import com.sy.appletree.preparelessons.AddLessonsActivity2;
+import com.sy.appletree.preparelessons.AddLessonsActivity3;
 import com.sy.appletree.preparelessons.BeiKeActivity;
 import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
@@ -202,13 +201,14 @@ public class CourseFragment extends Fragment {
                 Toast.makeText(getActivity().getApplicationContext(), "条目点击了", Toast.LENGTH_SHORT).show();
                 //主页第一页的条目被点击跳转到具体的备课页面
                 Intent intent = new Intent(getActivity(), BeiKeActivity.class);
+                CoursePkgListBean.DataBean dataBean = mCourseBeans.get(position);
                 intent.putExtra("yuLan", false);
                 intent.putExtra("isSingle", true);
-                intent.putExtra("Name", "这里该填那个字段");
-                intent.putExtra("Subject", "假装是数学");
-                intent.putExtra("Book", "反正我用的是人教版");
-                intent.putExtra("Grad", "高二好了");
-                intent.putExtra("ID", "68");
+                intent.putExtra("Name", dataBean.getName());
+                intent.putExtra("Subject", dataBean.getSubject());
+                intent.putExtra("Book", dataBean.getVersion());
+                intent.putExtra("Grad", dataBean.getUseGrade());
+                intent.putExtra("ID", String.valueOf(dataBean.getCourseId()));
                 intent.putExtra("isNewCourse", false);
 
                 startActivity(intent);
@@ -231,7 +231,7 @@ public class CourseFragment extends Fragment {
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddLessonsActivity.class);
+                Intent intent = new Intent(getActivity(), AddLessonsActivity3.class);
 
                 startActivity(intent);
             }
@@ -343,7 +343,7 @@ public class CourseFragment extends Fragment {
             toast("删除成功");
             mCourseBeans.remove(position);
             mKeChengAdapter.notifyDataSetChanged();
-        }else {
+        } else {
             toast(numberVavlibleBean.getInfo());
         }
 //        Message message = new Message();
@@ -358,7 +358,7 @@ public class CourseFragment extends Fragment {
 
         if (numberVavlibleBean.getStatus().equals("y")) {
             toast("发表成功");
-        }else {
+        } else {
             toast(numberVavlibleBean.getInfo());
         }
     }
@@ -374,8 +374,11 @@ public class CourseFragment extends Fragment {
     }
 
     private void getDataFromServerSuccess(CoursePkgListBean coursePkgListBean) {
-        mCourseBeans.addAll(coursePkgListBean.getData());
-        mKeChengAdapter.notifyDataSetChanged();
+        if (coursePkgListBean.getData() != null) {
+            mCourseBeans.addAll(coursePkgListBean.getData());
+            mKeChengAdapter.notifyDataSetChanged();
+        }
+
     }
 
     private void getDataFromServerFaild(CoursePkgListBean coursePkgListBean) {
@@ -407,7 +410,7 @@ public class CourseFragment extends Fragment {
         mBaseRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddLessonsActivity2.class);
+                Intent intent = new Intent(getActivity(), AddLessonsActivity3.class);
                 Log.e(getClass().getSimpleName(), "跳转到新增课程页面");
                 startActivity(intent);
             }
@@ -465,11 +468,17 @@ public class CourseFragment extends Fragment {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
             CoursePkgListBean.DataBean dataBean = mCourseBeans.get(position);
-            viewHolder.shijian.setText(dataBean.getName());
             viewHolder.jiaocai.setText(dataBean.getVersion());
             viewHolder.kemu.setText(dataBean.getSubject());
             viewHolder.nianji.setText(dataBean.getUseGrade());
             viewHolder.shijian.setText(dataBean.getCreateDateStr());
+            viewHolder.mingcheng.setText(dataBean.getName());
+            if (dataBean.getResource().equals("C")) {
+                viewHolder.zhiku.setText("原创");
+            } else {
+                viewHolder.zhiku.setText("智库");
+            }
+
             return convertView;
         }
 

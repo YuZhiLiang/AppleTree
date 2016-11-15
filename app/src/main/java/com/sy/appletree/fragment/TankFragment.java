@@ -145,8 +145,11 @@ public class TankFragment extends Fragment {
     }
 
     private void getDataFromServiceSuccess(WisomLibListBean wisomLibListBean) {
-        mWisomBeans.addAll(wisomLibListBean.getData());
-        mTankAdapter.notifyDataSetChanged();
+        if (wisomLibListBean.getData() != null) {
+            mWisomBeans.addAll(wisomLibListBean.getData());
+            mTankAdapter.notifyDataSetChanged();
+        }
+
     }
 
     private void toast(String message) {

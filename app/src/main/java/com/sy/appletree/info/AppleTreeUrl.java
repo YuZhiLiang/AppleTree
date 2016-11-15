@@ -32,6 +32,17 @@ public final class AppleTreeUrl {
         public final static String PARAMS_VAI_CODE = "valCode";
     }
 
+    //注册
+    public static final class Register {
+        public static final String PROTOCOL = "user_app_regUser.action?";
+        public final static String PARAMS_E_MAIL = "email=";
+        public final static String PARAMS_SEX = "sex=";
+        public final static String PARAMS_MOBLIE = "mobile=";
+        public final static String PARAMS_USER_NAME = "username=";
+        public final static String PARAMS_SCHOOL_ID = "schoolId=";
+        public final static String PARAMS_AREA_ID = "areaId=";
+    }
+
     //登录
     public static final class Loging {
         public final static String PROTOCOL = "login_app_login.action?";
@@ -99,6 +110,29 @@ public final class AppleTreeUrl {
     public static final class ReleaseToWisomLib {
         public static final String PROTOCOL = "course_app_releaseToWisomLib.action?";
         public static final String PARAMS_COURSE_PKG_ID = "coursePackageId";
+    }
+
+    //拿到省
+    public static final class GetPrinceList {
+        public static final String PROTOCOL = "login_app_getPrince.action";
+    }
+
+    //拿到市
+    public static final class GetCityList {
+        public static final String PROTOCOL = "login_app_getCity.action?";
+        public static final String PARAMS_PRINCE_ID = "princeId=";
+    }
+
+    //拿到区
+    public static final class GetAreaList {
+        public static final String PROTOCOL = "login_app_getAreaList.action?";
+        public static final String PARAMS_AREA_ID = "areaId=";
+    }
+
+    //拿到学校列表
+    public static final class GetSchoolList {
+        public static final String PROTOCOL = "login_app_getSchoolList.action?";
+        public static final String PARAMS_AREA_ID = "areaId=";
     }
 
 }

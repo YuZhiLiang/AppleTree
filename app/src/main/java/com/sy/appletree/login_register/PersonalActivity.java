@@ -42,7 +42,7 @@ public class PersonalActivity extends AppCompatActivity {
 
     @OnClick(R.id.personal_btn)
     public void onClick() {
-        Intent intent=new Intent(PersonalActivity.this,ChooseCityActivity.class);
+        Intent intent=new Intent(PersonalActivity.this,ChooseCityActivity2.class);
         startActivity(intent);
     }
 

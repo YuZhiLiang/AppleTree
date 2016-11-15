@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/navibar_bg_big"
+    android:orientation="vertical"
+    tools:context="com.sy.appletree.login_register.ChooseCityActivity">
+
+    <RelativeLayout
+        android:layout_marginTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <ImageView
+            android:id="@id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:src="@mipmap/btn_back_white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="选择城市"
+            android:textColor="@color/myWhite"
+            android:textSize="22sp"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <EditText
+            android:textColor="@color/textColor"
+            android:gravity="center"
+            android:id="@id/search_city_edit"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:background="@mipmap/bar_search_long"/>
+
+        <ImageView
+            android:id="@id/search_city"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@mipmap/btn_icon_search_green_n"/>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginLeft="5dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="最近访问城市"
+            android:textColor="@color/textColor"
+            android:textSize="18sp"/>
+
+        <LinearLayout
+            android:id="@+id/city_history"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ListView
+            android:background="@color/myWhite"
+            android:id="@+id/city_list"
+            android:layout_width="match_parent"
+            android:layout_height="370dp"
+            android:paddingLeft="10dp">
+        </ListView>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="@android:color/darker_gray"/>
+
+        <TextView
+            android:id="@id/confrim"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@drawable/select_create"
+            android:gravity="center"
+            android:text="确认"
+            android:textColor="@color/myWhite"
+            android:textSize="22sp"/>
+    </LinearLayout>
+</LinearLayout>

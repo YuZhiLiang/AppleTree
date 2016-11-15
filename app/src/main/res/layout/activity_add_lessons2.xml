@@ -8,6 +8,7 @@
     tools:context="com.sy.appletree.preparelessons.AddLessonsActivity">
 
     <RelativeLayout
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         >
@@ -31,17 +32,20 @@
             android:textSize="18sp"/>
     </RelativeLayout>
 
+
+
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="60dp"
+        android:layout_height="wrap_content"
         android:background="#fff"
         android:orientation="vertical"
-        >
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <EditText
+            android:textColorHint="@color/bgGray"
             android:id="@+id/subject_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -109,14 +113,6 @@
                 android:text="北师大版"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:orientation="horizontal">
 
             <CheckBox
                 android:id="@+id/lessons_4"
@@ -131,6 +127,16 @@
                 android:text="湘教版"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+
 
             <CheckBox
                 android:id="@+id/lessons_5"
@@ -159,14 +165,6 @@
                 android:text="西师大版"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:orientation="horizontal">
 
             <CheckBox
                 android:id="@+id/lessons_7"
@@ -196,13 +194,22 @@
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"
                 />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
+
 
             <CheckBox
                 android:id="@+id/lessons_9"
-                android:layout_width="0dp"
+                android:layout_width="75dp"
                 android:layout_height="30dp"
                 android:layout_margin="5dp"
-                android:layout_weight="1"
                 android:background="@drawable/select_custom_bg"
                 android:button="@null"
                 android:gravity="center"
@@ -410,6 +417,16 @@
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
 
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
+
             <CheckBox
                 android:id="@+id/grade_4"
                 android:layout_width="0dp"
@@ -423,16 +440,6 @@
                 android:text="小学四年级"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:orientation="horizontal">
-
-
             <CheckBox
                 android:id="@+id/grade_5"
                 android:layout_width="0dp"
@@ -461,6 +468,16 @@
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
 
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
             <CheckBox
                 android:id="@+id/grade_7"
                 android:layout_width="0dp"
@@ -488,16 +505,6 @@
                 android:text="初中二年级"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:orientation="horizontal">
-
 
             <CheckBox
                 android:id="@+id/grade_9"
@@ -512,6 +519,15 @@
                 android:text="初中三年级"
                 android:textColor="@drawable/select_lesson_txt_color"
                 android:textSize="16sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="horizontal">
 
             <CheckBox
                 android:id="@+id/grade_10"
@@ -556,17 +572,15 @@
                 android:textSize="16sp"/>
         </LinearLayout>
 
-
+        <TextView
+            android:id="@+id/save"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="30dp"
+            android:background="@color/btnColor"
+            android:gravity="center"
+            android:text="保存"
+            android:textColor="@color/myWhite"/>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/save"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="60dp"
-        android:background="@color/btnColor"
-        android:gravity="center"
-        android:text="保存"
-        android:textColor="#fff"/>
 </RelativeLayout>

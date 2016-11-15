@@ -18,4 +18,7 @@
     <item name="student_evaluate" type="id"/>
     <item name="class_evaluate" type="id"/>
     <item name="group_evaluate" type="id"/>
+    <item name="search_city" type="id"/>
+    <item name="search_city_edit" type="id"/>
+    <item name="confrim" type="id"/>
 </resources>

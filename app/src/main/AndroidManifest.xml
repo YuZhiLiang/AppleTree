@@ -60,6 +60,8 @@
         </activity>
         <activity android:name=".login_register.ChooseCityActivity">
         </activity>
+        <activity android:name=".login_register.ChooseCityActivity2">
+        </activity>
         <activity
             android:name=".login_register.ChoosePlaceActivity"
             android:launchMode="singleTask">
@@ -81,6 +83,8 @@
             android:launchMode="singleTask">
         </activity>
         <activity android:name=".preparelessons.AddLessonsActivity2">
+        </activity>
+        <activity android:name=".preparelessons.AddLessonsActivity3">
         </activity>
         <activity android:name=".myclasses.CreateAndAddClassesActivity">
         </activity>
@@ -109,6 +113,10 @@
         <activity android:name=".evaluate.ShowEvaluateActivity">
         </activity>
         <activity android:name=".evaluate.EvaluateActivity">
+        </activity>
+        <activity android:name=".login_register.PresonalInfoActivity">
+        </activity>
+        <activity android:name=".evaluate.EvaluateDetailActivity">
         </activity>
     </application>
 

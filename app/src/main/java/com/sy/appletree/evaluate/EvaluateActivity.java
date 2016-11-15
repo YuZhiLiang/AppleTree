@@ -2,6 +2,7 @@ package com.sy.appletree.evaluate;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sy.appletree.R;
 import com.sy.appletree.base.BaseApplication;
@@ -39,7 +41,7 @@ import butterknife.OnClick;
 
 import static android.view.View.inflate;
 
-public class EvaluateActivity extends AppCompatActivity {
+public class EvaluateActivity extends AppCompatActivity implements EvaluateItemView.onEvaluateDetailItemOnClickListener {
 
 
     @Bind(R.id.back)
@@ -181,6 +183,7 @@ public class EvaluateActivity extends AppCompatActivity {
         }
     };
 
+
     class EvaluateBottomAdapter extends BaseAdapter {
 
         @Override
@@ -200,9 +203,21 @@ public class EvaluateActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            View v = new EvaluateItemView(BaseApplication.getContext());
+            EvaluateItemView v = new EvaluateItemView(BaseApplication.getContext());
+            v.setOnEvaluateDetailItemOnClickListener(EvaluateActivity.this);
             return v;
         }
+    }
+
+    //评价里的小组或个人条目被点击
+    @Override
+    public void onEvaluateDetailItemOnClick(int position) {
+        Intent intent = new Intent(this, EvaluateDetailActivity.class);
+        startActivity(intent);
+    }
+
+    private void toast(String message) {
+        Toast.makeText(BaseApplication.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private Dialog dialog;

@@ -36,6 +36,7 @@ public class RegisterSuccessActivity extends AppCompatActivity {
     public void onClick() {
         Intent intent=new Intent(RegisterSuccessActivity.this, MainActivity.class);
         startActivity(intent);
+        finish();
     }
     private void downActivity() {
         IntentFilter filter = new IntentFilter();

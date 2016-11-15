@@ -88,7 +88,6 @@ public class RegisterActivity extends AppCompatActivity {
         String status = numberVavlibleBean.getStatus();
         if (status.equals("y")) {
             //可以注册，发送验证码，打开下一个页面
-            //TODO 发送验证码
             sendValCode(phoneNum);
         } else {
             //号码被占用
@@ -97,13 +96,12 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     //发送验证码
-    private void sendValCode(String phoneNum) {
+    private void sendValCode(final String phoneNum) {
 
         Map<String, Object> params = new HashMap<>();
         params.put(AppleTreeUrl.SendValCode.PARAMS_MOBILE, phoneNum);
         String url = AppleTreeUrl.sRootUrl + AppleTreeUrl.SendValCode.PROTOCOL
                 + HttpUtils.getUrlParamsByMap(params);
-        Log.e("sendyzm", url);
         OkHttpUtils
                 .get()
                 .url(url)
@@ -116,14 +114,18 @@ public class RegisterActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(String response, int id) {
+
                         Gson gson = new Gson();
                         //检查号码是否被注册的Bean和发送验证码的Bean一样，这里拿来复用了
                         NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
-                        if(numberVavlibleBean.getStatus().equals("y")) {
-                            Toast.makeText(getApplicationContext(), "验证码发送成功", Toast.LENGTH_SHORT).show();
+                        if (numberVavlibleBean.getStatus().equals("y")) {
+                            Toast.makeText(getApplicationContext(), numberVavlibleBean.getData().toString() , Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(RegisterActivity.this, AuthcodeActivity.class);
+                            intent.putExtra("IDE", numberVavlibleBean.getData().toString());
+                            intent.putExtra("phoneNum", phoneNum);
                             startActivity(intent);
-                        }else {
+                            finish();
+                        } else {
                             Toast.makeText(getApplicationContext(), "验证码发送失败", Toast.LENGTH_SHORT).show();
                         }
 

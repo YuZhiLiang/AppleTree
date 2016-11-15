@@ -64,7 +64,7 @@
                     android:background="@android:color/white"/>
 
                 <EditText
-                    android:text="123456"
+                    android:text="OUIMX1MI"
                     android:id="@+id/login_pwd"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
