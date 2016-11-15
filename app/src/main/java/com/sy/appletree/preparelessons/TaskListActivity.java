@@ -26,7 +26,6 @@ import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
 import com.sy.appletree.swipemenulistview.SwipeMenuItem;
 import com.sy.appletree.swipemenulistview.SwipeMenuListView;
-import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -134,8 +133,9 @@ public class TaskListActivity extends AppCompatActivity {
                 Intent intent = new Intent(TaskListActivity.this, CreateTaskActivity.class);
                 intent.putExtra("tag", "edit");
                 intent.putExtra("weizhi", position);
+                intent.putExtra("taskID", String.valueOf(DataBeans.get(position).getTaskId()));
+                Log.e("传任务ID过去", "" + DataBeans.get(position).getTaskId());
                 //传值过去
-
                 startActivityForResult(intent, 1);
             }
         });
@@ -216,11 +216,8 @@ public class TaskListActivity extends AppCompatActivity {
         //是不是新任务
         mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);
         //拿到小课程ID
-        if(Const.isDeBug) {
-            mCourseID = "68";
-        }else {
-            mCourseID = intent.getStringExtra("courseID");
-        }
+        mCourseID = intent.getStringExtra("courseID");
+
     }
 
     @OnClick({R.id.base_left, R.id.task_btn})
@@ -320,7 +317,6 @@ public class TaskListActivity extends AppCompatActivity {
             mTaskHave.setVisibility(View.VISIBLE);
             DataBeans.add(taskbean);
             mSwipeTaskAdapter.notifyDataSetChanged();
-
         } else {
             Log.e(getClass().getSimpleName(), "获取返回值失败");
         }

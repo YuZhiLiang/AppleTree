@@ -24,6 +24,7 @@ import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.myclasses.CreateAndAddClassesActivity;
 import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.SharePreferenceUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
@@ -206,6 +207,7 @@ public class ChoosePlaceActivity extends BaseActivity {
                         NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
                         if (numberVavlibleBean.getStatus().equals("y")) {
                             //TODO 登陆逻辑
+                            SPUtils.putSession(numberVavlibleBean.getData().toString());
                             Intent intent = new Intent(ChoosePlaceActivity.this, RegisterSuccessActivity.class);
                             startActivity(intent);
                             finish();

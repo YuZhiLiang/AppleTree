@@ -210,7 +210,6 @@ public class CourseFragment extends Fragment {
                 intent.putExtra("Grad", dataBean.getUseGrade());
                 intent.putExtra("ID", String.valueOf(dataBean.getCourseId()));
                 intent.putExtra("isNewCourse", false);
-
                 startActivity(intent);
             }
         });

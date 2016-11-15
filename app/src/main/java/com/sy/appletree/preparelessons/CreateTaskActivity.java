@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -25,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -86,6 +88,9 @@ public class CreateTaskActivity extends AppCompatActivity {
     Button mCreatTaskDel;
     @Bind(R.id.link_text)
     MyGridView mLinkText;
+    private static int ADD_TASK = 1;
+    private static int EDIT_TASK = 2;
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -142,8 +147,9 @@ public class CreateTaskActivity extends AppCompatActivity {
 
     private void getDataFromIntent() {
         Intent intent = getIntent();
-        mCourseID = intent.getStringExtra("courseID");
         mTAG = intent.getStringExtra("tag");
+        mCourseID = intent.getStringExtra("courseID");//添加新任务时过来的Intent带有小课程ID
+        mTaskID = intent.getStringExtra("taskID");//修改任务时带过来的Intent有任务ID
     }
 
     private void setView() {
@@ -154,8 +160,6 @@ public class CreateTaskActivity extends AppCompatActivity {
             mCreatTaskDel.setVisibility(View.GONE);
         } else if (mTAG.equals("edit")) {//修改任务
             Toast.makeText(CreateTaskActivity.this, "修改任务", Toast.LENGTH_SHORT).show();
-
-
             mCreatTaskDel.setVisibility(View.VISIBLE);
         }
     }
@@ -167,7 +171,7 @@ public class CreateTaskActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.base_right:
-
+                hideKeyBord();
                 initBackPopWindow();
                 openPopWindowCenter();
                 break;
@@ -191,6 +195,12 @@ public class CreateTaskActivity extends AppCompatActivity {
                 finish();
                 break;
         }
+    }
+
+    private void hideKeyBord() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mCreatTaskContent.getWindowToken(), 0);
+
     }
 
     /**
@@ -394,10 +404,37 @@ public class CreateTaskActivity extends AppCompatActivity {
             toast("请输入任务标题及内容");
             return;
         }
+        if (mTAG.equals("add")) {
+            //添加任务的逻辑
+            saveTask2Service(mCreatTaskName.getText().toString().trim(), mCreatTaskContent.getText().toString().trim());
+        } else {
+            //修改任务的逻辑
+            editTaskOnService(mCreatTaskName.getText().toString().trim(), mCreatTaskContent.getText().toString().trim());
+        }
 
-        saveTask2Service(mCreatTaskName.getText().toString().trim(), mCreatTaskContent.getText().toString().trim());
     }
 
+    //修改任务
+    private void editTaskOnService(String taskTitle, String taskContent) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.EditTask.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.EditTask.PARAMS_TASK_ID + "=")
+                .append(mTaskID + "&").append(AppleTreeUrl.AddTask.PARAMS_NAME + "=")
+                .append(taskTitle + "&")
+                .append(AppleTreeUrl.EditTask.PARAMS_CONTENT + "=")
+                .append(taskContent);
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CreatTaskActivityCallBack(taskTitle, taskContent));
+    }
+
+    //新增任务
     private void saveTask2Service(String taskTitle, String taskContent) {
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
@@ -420,6 +457,7 @@ public class CreateTaskActivity extends AppCompatActivity {
     class CreatTaskActivityCallBack extends StringCallback {
         String mTaskTitle;
         String mTaskContent;
+        int mTaskType;
 
         public CreatTaskActivityCallBack(String taskTitle, String taskContent) {
             mTaskTitle = taskTitle;
@@ -433,8 +471,33 @@ public class CreateTaskActivity extends AppCompatActivity {
 
         @Override
         public void onResponse(String response, int id) {
-            Log.e(getClass().getSimpleName() + "Response", response);
             Gson gson = new Gson();
+            switch (mTAG) {
+                case "add":
+                    paraseAddTaskResponse(response, gson);
+                    break;
+                case "edit":
+                    paraseEditTaskResponse(response, gson);
+                    break;
+            }
+        }
+
+        //解析编辑任务返回的数据
+        private void paraseEditTaskResponse(String response, Gson gson) {
+            Log.e(getClass().getSimpleName() + "Response", response);
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                //修改任务成功
+                CreateTaskActivity.this.finish();
+            } else {
+                //修改任务失败
+                toast(numberVavlibleBean.getInfo());
+            }
+        }
+
+        //解析添加任务返回的数据
+        private void paraseAddTaskResponse(String response, Gson gson) {
+
             NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
             if (numberVavlibleBean.getStatus().equals("y")) {
                 onAddTask2ServiceSuccess(numberVavlibleBean, mTaskTitle, mTaskContent);
@@ -445,12 +508,12 @@ public class CreateTaskActivity extends AppCompatActivity {
     }
 
     private void onAddTask2ServiceSuccess(NumberVavlibleBean numberVavlibleBean, String taskTitle, String taskContent) {
+        Log.e(getClass().getSimpleName(), "设置回传值");
         mTaskID = (String) numberVavlibleBean.getData().toString();
         String taskName = taskTitle;
         Intent intent = getIntent();
         intent.putExtra("getTaskName", taskName);
         intent.putExtra("getTaskID", mTaskID);
-        Log.e(getClass().getSimpleName(), "设置回传值");
         setResult(RESULT_OK, intent);
         finish();
     }

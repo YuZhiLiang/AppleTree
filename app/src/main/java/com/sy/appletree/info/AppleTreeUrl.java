@@ -103,7 +103,15 @@ public final class AppleTreeUrl {
         public static final String PROTOCOL = "course_app_addTask.action?";
         public static final String PARAMS_COURSE_ID = "courseId";//小课程ID
         public static final String PARAMS_NAME = "name";//任务标题
-        public static final String PARAMS_CONTENT = "content";//任务标题
+        public static final String PARAMS_CONTENT = "content";//任务内容
+    }
+
+    //修改小课程的任务
+    public static final class EditTask {
+        public static final String PROTOCOL = "course_app_editTask.action?";
+        public static final String PARAMS_TASK_ID = "taskId";//小课程ID
+        public static final String PARAMS_NAME = "name";//任务标题
+        public static final String PARAMS_CONTENT = "content";//任务内容
     }
 
     //发表到智库

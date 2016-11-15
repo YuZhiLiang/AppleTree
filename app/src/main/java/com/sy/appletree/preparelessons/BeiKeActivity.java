@@ -114,15 +114,13 @@ public class BeiKeActivity extends AppCompatActivity {
                 //点击课程跳转到预览任务列表
                 Intent intent = new Intent(BeiKeActivity.this, TaskListActivity.class);
                 int courseId = mBeikeBeans1.get(position).getCourseId();//小课程ID
+                intent.putExtra("courseID", String.valueOf(courseId));//添加小课程ID
                 if (mYuLan) {
-                    intent.putExtra("courseID", String.valueOf(courseId));//添加小课程ID
                     intent.putExtra("yuLan", true);
-
                 } else {
-                    intent.putExtra("courseID", String.valueOf(courseId));//添加小课程ID
                     intent.putExtra("yuLan", false);
                 }
-                intent.putExtra("isNewCourse", mIsNewCourse);//是不是新创建的任务（需不需要请求服务器）
+//                intent.putExtra("isNewCourse", mIsNewCourse);//是不是新创建的任务（需不需要请求服务器）
                 startActivity(intent);
             }
         });
@@ -215,9 +213,7 @@ public class BeiKeActivity extends AppCompatActivity {
             mBaseTitle.setText("预览课程");
             mBaseRight.setVisibility(View.INVISIBLE);
             mBaseRight.setClickable(false);
-
         }
-
     }
 
     private void getChuanZhi() {
@@ -304,6 +300,7 @@ public class BeiKeActivity extends AppCompatActivity {
                     BeiKeActivityListBean.DataBean beikeBean = new BeiKeActivityListBean.DataBean();
 
                     beikeBean.courseName = name.getText().toString();
+
                     addBiKeBean(beikeBean);
 //                    mBeikeBeans.add(beikeBean);
 //                    mBeikeBeans1.clear();
@@ -337,6 +334,7 @@ public class BeiKeActivity extends AppCompatActivity {
             }
         });
     }
+
 
     //添加小课程到课程包
     private void addBiKeBean(BeiKeActivityListBean.DataBean beikeBean) {
