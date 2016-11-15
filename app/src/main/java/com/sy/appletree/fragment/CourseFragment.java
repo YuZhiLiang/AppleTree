@@ -329,8 +329,6 @@ public class CourseFragment extends Fragment {
                     paraseDeleteCoursePkg(response, gson, position);
                     break;
             }
-
-
         }
     }
 

@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sy.appletree.R;
 import com.sy.appletree.base.WisomLibListBean;
@@ -84,6 +85,19 @@ public class TankFragment extends Fragment {
         mTankAdapter = new TankAdapter();
         mZhikuList.setAdapter(mTankAdapter);
 
+        initEvent();
+
+        //个人中心
+        mBaseLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMyOnClickListener.onClick();
+            }
+        });
+        return mView;
+    }
+
+    private void initEvent() {
         mZhikuList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {//position会比平常的listView多一
@@ -102,14 +116,29 @@ public class TankFragment extends Fragment {
             }
         });
 
-        //个人中心
-        mBaseLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mMyOnClickListener.onClick();
-            }
-        });
-        return mView;
+        mZhikuList.setOnRefreshListener(new ZKOnRefreshListener());
+    }
+
+    class ZKOnRefreshListener implements PullToRefreshBase.OnRefreshListener {
+
+        @Override
+        public void onRefresh(PullToRefreshBase refreshView) {
+            getRefreshData();
+        }
+    }
+
+    private void getRefreshData() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetWisomLibList.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new TankFragmentStringCallBack("refresh"));
+
     }
 
     private void getData() {
@@ -122,14 +151,20 @@ public class TankFragment extends Fragment {
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(new TankFragmentStringCallBack());
+                .execute(new TankFragmentStringCallBack("init"));
     }
 
     class TankFragmentStringCallBack extends StringCallback {
+        String what;
+
+        public TankFragmentStringCallBack(String what) {
+            this.what = what;
+        }
 
         @Override
         public void onError(Call call, Exception e, int id) {
             toast("网络错误");
+            mZhikuList.onRefreshComplete();
         }
 
         @Override
@@ -137,10 +172,26 @@ public class TankFragment extends Fragment {
             Gson gson = new Gson();
             WisomLibListBean wisomLibListBean = gson.fromJson(response, WisomLibListBean.class);
             if (wisomLibListBean.getStatus().equals("y")) {
-                getDataFromServiceSuccess(wisomLibListBean);
+                if(what.equals("init")) {
+                    getDataFromServiceSuccess(wisomLibListBean);
+                }else {
+                    referenceDataSuccess(wisomLibListBean);
+                }
+
             } else {
                 toast(wisomLibListBean.getInfo());
             }
+
+
+        }
+    }
+
+    private void referenceDataSuccess(WisomLibListBean wisomLibListBean) {
+        if (wisomLibListBean.getData() != null) {
+            mWisomBeans.clear();
+            mWisomBeans.addAll(wisomLibListBean.getData());
+            mTankAdapter.notifyDataSetChanged();
+            mZhikuList.onRefreshComplete();
         }
     }
 

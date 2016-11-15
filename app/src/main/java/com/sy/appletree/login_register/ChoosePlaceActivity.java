@@ -60,6 +60,9 @@ public class ChoosePlaceActivity extends BaseActivity {
         if (tag == 1) {//标识从我的班级中跳转过来的
             String param = (String) SharePreferenceUtils.getParam(ChoosePlaceActivity.this, Const.CACHE_CITY, "");
             setBasePlaceCityText(param);
+
+            //临时从服务器拉一次数据,真实情况下要拉取用户的所在机构的列表
+            getSchoolListDataFromeService();
         } else {//登陆普通流程过来
             setBasePlaceCityText(city);
             getDataFromeService();
