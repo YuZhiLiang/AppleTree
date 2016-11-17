@@ -185,4 +185,9 @@ public final class AppleTreeUrl {
         public static final String PARAMS_NAME = "name=";
     }
 
+    //查询当前用户加入的所有班级简要信息
+    public static final class ClassSummary {
+        public static final String PROTOCOL = "schoolClass_app_getClassSummary.action?";
+    }
+
 }

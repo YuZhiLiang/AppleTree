@@ -5,19 +5,28 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.adapter.ClassPagerAdapter;
+import com.sy.appletree.base.BaseApplication;
+import com.sy.appletree.bean.ClasssSummaryBean;
 import com.sy.appletree.fragment.ClassManagerFragment;
 import com.sy.appletree.homepage.MainActivity;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.login_register.ChoosePlaceActivity;
 import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.SharePreferenceUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +34,7 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 public class ClassManegerActivity extends AppCompatActivity {
 
@@ -45,6 +55,7 @@ public class ClassManegerActivity extends AppCompatActivity {
     private String Banji;
     private ClassManagerFragment mClassManagerFragment1, mClassManagerFragment2, mClassManagerFragment3;
     private List<Fragment> mFragmentList = new ArrayList<>();
+    private ArrayList<ClasssSummaryBean.DataBean> mClassSummaryBeans = new ArrayList<>();
     private ClassPagerAdapter mClassPagerAdapter;
 
     //小圆点相关
@@ -123,6 +134,55 @@ public class ClassManegerActivity extends AppCompatActivity {
     private void initData() {
         School = (String) SharePreferenceUtils.getParam(ClassManegerActivity.this, Const.CACHE_SCHOOL, "");
         Banji = getIntent().getStringExtra("BanJi");
+        getDataFromService();
+    }
+
+    private void getDataFromService() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.ClassSummary.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+
+        Log.e(getClass().getSimpleName(), url.toString());
+
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new ClassManagerCallBack());
+
+    }
+
+    class ClassManagerCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            ClasssSummaryBean classsSummaryBeans = gson.fromJson(response, ClasssSummaryBean.class);
+            if (classsSummaryBeans.getStatus().equals("y")) {
+                onGetClassSummaryBeansSuccess(classsSummaryBeans.getData());
+            }else {
+                toast(classsSummaryBeans.getInfo());
+            }
+        }
+    }
+
+    private void onGetClassSummaryBeansSuccess(List<ClasssSummaryBean.DataBean> data) {
+        if (!mClassSummaryBeans.isEmpty()) {
+            mClassSummaryBeans.clear();
+        }
+        mClassSummaryBeans.addAll(data);
+    }
+
+    private void toast(String message) {
+        Toast.makeText(BaseApplication.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     private void addDotView(int size) {
@@ -145,11 +205,11 @@ public class ClassManegerActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.base_left:
-                Intent intent1=new Intent(ClassManegerActivity.this, MainActivity.class);
+                Intent intent1 = new Intent(ClassManegerActivity.this, MainActivity.class);
                 startActivity(intent1);
                 break;
             case R.id.base_right:
-                Intent intent=new Intent(ClassManegerActivity.this, ChoosePlaceActivity.class);
+                Intent intent = new Intent(ClassManegerActivity.this, ChoosePlaceActivity.class);
                 startActivity(intent);
                 break;
         }
