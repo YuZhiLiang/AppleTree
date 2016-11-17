@@ -118,7 +118,6 @@ public class ClassManagerFragment extends Fragment {
             int xuesheng = data.getIntExtra("xuesheng", 0);
             mChengyuanNumber.setText(xuesheng+"");
         }
-
     }
 
     public void openPopWindow() {

@@ -46,7 +46,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Bind(R.id.base_child_content)
     LinearLayout mBaseChildContent;
     @Bind(R.id.base_city_search)
-    EditText mBaseCitySearch;
+    public EditText mBaseCitySearch;
     @Bind(R.id.base_search_btn)
     ImageButton mBaseSearchBtn;
     @Bind(R.id.base_search_content)
@@ -64,7 +64,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Bind(R.id.base_right_addTxt)
     TextView mBaseRightAddTxt;
     @Bind(R.id.base_city_search2)
-    EditText mBaseCitySearch2;
+    public EditText mBaseCitySearch2;
     @Bind(R.id.base_search_btn2)
     ImageButton mBaseSearchBtn2;
     @Bind(R.id.base_search_content2)

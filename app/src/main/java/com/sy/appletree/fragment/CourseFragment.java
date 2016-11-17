@@ -40,6 +40,10 @@ import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 
 import butterknife.Bind;
@@ -157,6 +161,7 @@ public class CourseFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.course_fragment_layout, container, false);
         ButterKnife.bind(this, mView);
+        EventBus.getDefault().register(this);
 
         initView();
         initDate();
@@ -240,6 +245,12 @@ public class CourseFragment extends Fragment {
         return mView;
 
 
+    }
+
+    //拿到添加课程成功的回传事件刷新UI
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(CoursePkgListBean.DataBean coursePkgBean) {
+        getDataFromServer();
     }
 
     private void delteCoursePackage(int position) {
@@ -343,10 +354,6 @@ public class CourseFragment extends Fragment {
         } else {
             toast(numberVavlibleBean.getInfo());
         }
-//        Message message = new Message();
-//        message.what = 1;
-//        message.arg1 = position;
-//        mHandler.sendMessage(message);
     }
 
     //发表到智库
@@ -372,6 +379,9 @@ public class CourseFragment extends Fragment {
 
     private void getDataFromServerSuccess(CoursePkgListBean coursePkgListBean) {
         if (coursePkgListBean.getData() != null) {
+            if (!mCourseBeans.isEmpty()) {
+                mCourseBeans.clear();
+            }
             mCourseBeans.addAll(coursePkgListBean.getData());
             mKeChengAdapter.notifyDataSetChanged();
         }
@@ -428,6 +438,7 @@ public class CourseFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
+        EventBus.getDefault().unregister(this);
     }
 
     public class KeChengAdapter extends BaseAdapter {

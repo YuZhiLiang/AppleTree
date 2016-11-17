@@ -18,11 +18,14 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.base.BaseApplication;
+import com.sy.appletree.bean.CoursePkgListBean;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 
@@ -352,6 +355,8 @@ public class AddLessonsActivity3 extends AppCompatActivity {
             NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
             if (numberVavlibleBean.getStatus().equals("y")) {
                 AddLessonsSuccess(numberVavlibleBean.getData().toString());
+                CoursePkgListBean.DataBean coursePkgBean = new CoursePkgListBean.DataBean();
+                EventBus.getDefault().post(coursePkgBean);
             } else {
                 toast(numberVavlibleBean.getInfo());
             }

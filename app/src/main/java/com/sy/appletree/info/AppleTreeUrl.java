@@ -143,4 +143,38 @@ public final class AppleTreeUrl {
         public static final String PARAMS_AREA_ID = "areaId=";
     }
 
+    //查询任务的详细信息
+    public static final class GetTaskDetailInfo {
+        public static final String PROTOCOL = "course_app_getTaskDetailInfo.action?";
+        public static final String PARAMS_AREA_ID = "taskId=";
+    }
+
+    //查询所有评价指标
+    public static final class GetEvalPointList {
+        public static final String PROTOCOL = "evaPoint_app_getEvalPointList.action?";
+    }
+
+    //查询班级列表
+    public static final class GetSchoolClass {
+        public static final String PROTOCOL = "schoolClass_app_getSchoolClass.action?";
+        public static final String PARAMS_SCHOOL_ID = "schoolId=";
+        public static final String PARAMS_TYPE = "type=";
+    }
+
+    //加入班级
+    public static final class JointClass {
+        public static final String PROTOCOL = "schoolClass_app_jointClass.action?";
+        public static final String PARAMS_CLASS_ID = "classId=";
+    }
+
+    //创建班级
+    public static final class crateClass {
+        public static final String PROTOCOL = "schoolClass_app_createClass.action?";
+        public static final String PARAMS_SCHOOL_ID = "schoolId=";
+        public static final String PARAMS_TYPE = "type=";
+        public static final String PARAMS_GRADE = "grade=";
+        public static final String PARAMS_BAN_JI = "banji=";
+        public static final String PARAMS_NAME = "name=";
+    }
+
 }

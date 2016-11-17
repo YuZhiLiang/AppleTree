@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +17,14 @@ import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sy.appletree.R;
+import com.sy.appletree.base.BaseApplication;
+import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +32,7 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 /**
  * 评价指标的页面
@@ -49,7 +57,44 @@ public class SetEvaluateActivity extends AppCompatActivity {
         }
         mEvaluateAdapter=new EvaluateAdapter(mList);
         mEvaluateGrid.setAdapter(mEvaluateAdapter);
+        getDataFromeService();
+        initEvent();
 
+    }
+
+    private void getDataFromeService() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetEvalPointList.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new SetEvaluateCallBack());
+
+    }
+
+    class SetEvaluateCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+        }
+    }
+
+    private void toast(String message) {
+        Toast.makeText(BaseApplication.getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void initEvent() {
         mEvaluateGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -73,7 +118,6 @@ public class SetEvaluateActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     @OnClick(R.id.base_left)

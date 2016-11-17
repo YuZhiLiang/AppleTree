@@ -3,6 +3,8 @@ package com.sy.appletree.login_register;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +42,7 @@ public class ChoosePlaceActivity extends BaseActivity {
     private PullToRefreshListView mListView;
     private Button mButton_btn;
     private ArrayList<SchoolListBean.DataBean> mSchoolbeans = new ArrayList<>();
+    private ArrayList<SchoolListBean.DataBean> mSchoolbeansBackups = new ArrayList<>();
     private PlaceChooseAdapter mPlaceChooseAdapter;
     private int ClickPosition = -1;
     private int tag;
@@ -49,6 +52,7 @@ public class ChoosePlaceActivity extends BaseActivity {
     private String mName;
     private String mSex;
     private String mCityID;
+    private RadioButton checkedCheckBox;
 
     @Override
     protected void findViews() {
@@ -73,6 +77,11 @@ public class ChoosePlaceActivity extends BaseActivity {
 
         mPlaceChooseAdapter = new PlaceChooseAdapter(this);
         mListView.setAdapter(mPlaceChooseAdapter);
+        initEvent();
+    }
+
+    private void initEvent() {
+        mBaseCitySearch.addTextChangedListener(new SearchTextChangeListener());
     }
 
     private void getDataFromeService() {
@@ -134,6 +143,48 @@ public class ChoosePlaceActivity extends BaseActivity {
     @Override
     protected void getData() {
 
+    }
+
+    class SearchTextChangeListener implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            if (s.toString().length() == 0) {
+                Log.e(getClass().getSimpleName(), "检测到改动前");
+                mSchoolbeansBackups.addAll(mSchoolbeans);
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Log.e(getClass().getSimpleName(), "检测到改动");
+            if (s.toString().trim().length() == 0) {
+                mSchoolbeans.clear();
+                mSchoolbeans.addAll(mSchoolbeansBackups);
+                mPlaceChooseAdapter.notifyDataSetChanged();
+            } else {
+                ArrayList<SchoolListBean.DataBean> mSearchSchoolListBeans = new ArrayList<>();
+                for (SchoolListBean.DataBean schoolBean : mSchoolbeansBackups) {
+                    if (schoolBean.getSchoolName().startsWith(s.toString())) {
+                        mSearchSchoolListBeans.add(schoolBean);
+                    }
+                }
+                mSchoolbeans.clear();
+                mSchoolbeans.addAll(mSearchSchoolListBeans);
+                mPlaceChooseAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            Log.e(getClass().getSimpleName(), "改动后");
+            if (s.toString().trim().length() == 0) {
+                mSchoolbeans.clear();
+                mSchoolbeans.addAll(mSchoolbeansBackups);
+                mSchoolbeansBackups.clear();
+                mPlaceChooseAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     @Override
@@ -225,6 +276,10 @@ public class ChoosePlaceActivity extends BaseActivity {
 
     private void CreatNewClass() {
         Intent intent = new Intent(ChoosePlaceActivity.this, CreateAndAddClassesActivity.class);
+        int position = (int) checkedCheckBox.getTag();
+        SchoolListBean.DataBean dataBean = mSchoolbeans.get(position);//因为时下拉刷新的ListView,position减一
+        intent.putExtra("schoolID", String.valueOf(dataBean.getSchoolId()));
+        Log.e(getClass().getSimpleName(), "拿到学校ID存入Intent， ID=" + String.valueOf(dataBean.getSchoolId()));
         startActivity(intent);
     }
 
@@ -302,12 +357,12 @@ public class ChoosePlaceActivity extends BaseActivity {
                     ClickPosition = position;
                     mSelectSchoolString = mSchoolbeans.get(position).getSchoolName();
                     mSelectSchoolID = String.valueOf(mSchoolbeans.get(position).getSchoolId());
+                    checkedCheckBox = (RadioButton) v;
                     notifyDataSetChanged();
                     Log.e("刷新执行了", position + "");
                 }
             });
-
-
+            viewHolder.mCheckBox.setTag(position);
             return convertView;
         }
 

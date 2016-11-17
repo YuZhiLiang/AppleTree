@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.bean.NumberVavlibleBean;
+import com.sy.appletree.bean.TaskDetailInfo;
 import com.sy.appletree.evaluate.SetEvaluateActivity;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
@@ -131,6 +132,9 @@ public class CreateTaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_task);
         ButterKnife.bind(this);
         getDataFromIntent();
+        if (mTaskID != null) {
+            getDataFromService();
+        }
         setView();
 
 
@@ -143,6 +147,53 @@ public class CreateTaskActivity extends AppCompatActivity {
         //指标
         mZhiBiaoAdapter = new ZhiBiaoAdapter(mStrings2);
         mTianjiaPjList.setAdapter(mZhiBiaoAdapter);
+    }
+
+    //如果带了TaskId过来说明不是新任务，从服务器拉取数据回来做回显示
+    private void getDataFromService() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetTaskDetailInfo.PROTOCOL)
+                .append(AppleTreeUrl.GetTaskDetailInfo.PARAMS_AREA_ID)
+                .append(mTaskID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CreatTastStringCallBack());
+    }
+
+    class CreatTastStringCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            TaskDetailInfo taskDetailInfo = gson.fromJson(response, TaskDetailInfo.class);
+            if (taskDetailInfo.getStatus().equals("y")) {
+                onGetTaskDetailInfoSuccess(taskDetailInfo.getData());
+            }else {
+                onGetTaskDetailInfoFailed(taskDetailInfo);
+            }
+        }
+    }
+
+
+    private void onGetTaskDetailInfoSuccess(TaskDetailInfo.DataBean data) {
+        mCreatTaskName.setText(data.getTaskName());
+        mCreatTaskContent.setText(data.getContent());
+    }
+
+    private void onGetTaskDetailInfoFailed(TaskDetailInfo taskDetailInfo) {
+        toast(taskDetailInfo.getInfo());
     }
 
     private void getDataFromIntent() {

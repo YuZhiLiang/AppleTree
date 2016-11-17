@@ -29,7 +29,7 @@ public class CoursePkgListBean {
      * version : 8
      */
 
-    private List<DataBean> data;
+    public List<DataBean> data;
 
     public String getStatus() {
         return status;
