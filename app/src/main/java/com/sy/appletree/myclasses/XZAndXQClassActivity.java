@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -67,6 +69,7 @@ public class XZAndXQClassActivity extends BaseActivity {
     int GET_CLASS_LIST = 1;
     int JOIN2CLASS = 2;
     int CREAT_CLASS = 3;
+    int CHECK_HAVE_CLASS = 4;
     private TextView mSpinner1;
     private TextView mSpinner2;
     private TextView mSpinner3;
@@ -75,6 +78,8 @@ public class XZAndXQClassActivity extends BaseActivity {
     int mGradLevel = -1;
     int mClassLevel = -1;
     private String mClassType;
+    public EditText mIntersertClassName;
+    private Button mButton1;
 
     @Override
     protected void findViews() {
@@ -152,9 +157,17 @@ public class XZAndXQClassActivity extends BaseActivity {
                 case 3:
                     parasCreatClassResponse(response, gson, mLayout);
                     break;
+                case 4:
+                    parasCheckHaveClassResponse(response, gson, mLayout);
+                    break;
             }
 
         }
+    }
+
+    //检查是不是存在该班级
+    private void parasCheckHaveClassResponse(String response, Gson gson, LinearLayout layout) {
+        Log.e(getClass().getSimpleName(), response);
     }
 
     //解析创建班级的请求
@@ -163,9 +176,9 @@ public class XZAndXQClassActivity extends BaseActivity {
         if (numberVavlibleBean.getStatus().equals("y")) {
             Log.e("parasCreatClassResponse", "parasCreatClassResponse");
             onCreatClassSuccess(layout);
-        }else {
+        } else {
             toast(numberVavlibleBean.getInfo());
-            dialog.dismiss();
+//            dialog.dismiss();
         }
     }
 
@@ -324,8 +337,16 @@ public class XZAndXQClassActivity extends BaseActivity {
         screenDimmed();//暗屏
 
         //加载弹出框的布局
-        contentView = LayoutInflater.from(this).inflate(
-                R.layout.pop_layout, null);
+        if (mClassType.equals("A")) {
+            contentView = LayoutInflater.from(this).inflate(
+                    R.layout.pop_layout, null);
+            initCreatStndardClassPopWin(contentView);
+        } else {
+            contentView = LayoutInflater.from(this).inflate(
+                    R.layout.pop_layout_add_interset_class, null);
+            initCreatIntersertClassPopWin(contentView);
+        }
+
         //设置弹出框的宽度和高度
         popupWindow = new PopupWindow(contentView,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -339,21 +360,126 @@ public class XZAndXQClassActivity extends BaseActivity {
         popupWindow.setTouchable(true);
         //进入退出的动画
         popupWindow.setAnimationStyle(R.style.mypopwindow_anim_style);
-        TextView title = (TextView) contentView.findViewById(R.id.xinjianbanji);
-        TextView tishi = (TextView) contentView.findViewById(R.id.yicunzai);
-        mSpinner1 = (TextView) contentView.findViewById(R.id.spinner1);
-        mSpinner2 = (TextView) contentView.findViewById(R.id.spinner2);
-        mSpinner3 = (TextView) contentView.findViewById(R.id.spinner3);
-        final Button button = (Button) contentView.findViewById(R.id.pop_chuangjian);
+        TextView title = (TextView) contentView.findViewById(R.id.xinjianbanji);//标题
+        TextView tishi = (TextView) contentView.findViewById(R.id.yicunzai);//已存在
+
+        mButton1 = (Button) contentView.findViewById(R.id.pop_chuangjian);
         ImageView close = (ImageView) contentView.findViewById(R.id.close);
 
         final LinearLayout layout_success = (LinearLayout) contentView.findViewById(R.id.pop_success);
         final LinearLayout layout_add = (LinearLayout) contentView.findViewById(R.id.pop_success_add);
-        if (tag.equals("0")) {
+        if (mClassType.equals("A")) {
             title.setText("新建班级");
-        } else if (tag.equals("1")) {
+        } else if (mClassType.equals("B")) {
             title.setText("新建兴趣班");
         }
+
+
+        mButton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mClassType.equals("A")) {
+                    Log.e(getClass().getSimpleName(), "创建标准班级时Btn的点击事件");
+                    creatStandardClassBtnClickEvent();
+                } else {
+                    Log.e(getClass().getSimpleName(), "创建兴趣班级时Btn的点击事件");
+                    creatIntersertBtnClickEvent();
+                }
+
+            }
+
+            private void creatIntersertBtnClickEvent() {
+                String intersertClassName = mIntersertClassName.getText().toString().trim();
+                if (TextUtils.isEmpty(intersertClassName)) {
+                    toast("请输入班级名称");
+                    return;
+                }
+                addInterestClass2Service(intersertClassName, layout_success);
+                toast(intersertClassName);
+            }
+
+            private void creatStandardClassBtnClickEvent() {
+                if ("请选择学校".equals(mSpinner1.getText().toString())) {
+                    Toast.makeText(XZAndXQClassActivity.this, "请选择教育阶段", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if ("请选择年级".equals(mSpinner2.getText().toString())) {
+                    Toast.makeText(XZAndXQClassActivity.this, "请选择年级", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if ("请选择班级".equals(mSpinner3.getText().toString())) {
+                    Toast.makeText(XZAndXQClassActivity.this, "请选择班级", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    //请求接口
+                    if (mButton1.getText().toString().equals("创建")) {
+                        checkHaveClass(layout_success);
+                    } else {
+                        ChuangJian(layout_add);
+                    }
+                }
+            }
+        });
+
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (popupWindow != null && popupWindow.isShowing()) {
+                    popupWindow.dismiss();
+                    popupWindow = null;
+                }
+                mSchoolLevel = -1;
+                mGradLevel = -1;
+                mClassLevel = -1;
+            }
+
+        });
+
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+
+                //亮屏
+                screenBrighter();
+                mSchoolLevel = -1;
+                mGradLevel = -1;
+                mClassLevel = -1;
+                if (isJop) {
+                    isJop = false;
+                    Intent intent = new Intent(XZAndXQClassActivity.this, ClassManegerActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+            }
+        });
+
+    }
+
+    private void addInterestClass2Service(String intersertClassName, LinearLayout layout_success) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.CrateClass.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.CrateClass.PARAMS_SCHOOL_ID)
+                .append(mSchoolID + "&")
+                .append(AppleTreeUrl.CrateClass.PARAMS_NAME)
+                .append(intersertClassName);
+        Log.e(getClass().getSimpleName(), url.toString());
+
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new XZAndXQClassCallBack(CREAT_CLASS, layout_success));
+    }
+
+    private void initCreatIntersertClassPopWin(View contentView) {
+        mIntersertClassName = (EditText) contentView.findViewById(R.id.interest_class_name);
+    }
+
+    private void initCreatStndardClassPopWin(View contentView) {
+        mSpinner1 = (TextView) contentView.findViewById(R.id.spinner1);
+        mSpinner2 = (TextView) contentView.findViewById(R.id.spinner2);
+        mSpinner3 = (TextView) contentView.findViewById(R.id.spinner3);
 
         mSpinner1.addTextChangedListener(new TextChangeListener() {
             @Override
@@ -571,87 +697,48 @@ public class XZAndXQClassActivity extends BaseActivity {
                 }
             }
         });
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if ("请选择学校".equals(mSpinner1.getText().toString())) {
-                    Toast.makeText(XZAndXQClassActivity.this, "请选择教育阶段", Toast.LENGTH_SHORT).show();
-                    return;
-                } else if ("请选择年级".equals(mSpinner2.getText().toString())) {
-                    Toast.makeText(XZAndXQClassActivity.this, "请选择年级", Toast.LENGTH_SHORT).show();
-                    return;
-                } else if ("请选择班级".equals(mSpinner3.getText().toString())) {
-                    Toast.makeText(XZAndXQClassActivity.this, "请选择班级", Toast.LENGTH_SHORT).show();
-                    return;
-                } else {
-                    //请求接口
-                    if (button.getText().toString().equals("创建")) {
-                        addStandardClass2Service(layout_success);
-                    } else {
-                        ChuangJian(layout_add);
-                    }
-
-                }
-            }
-        });
-
-        close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (popupWindow != null && popupWindow.isShowing()) {
-                    popupWindow.dismiss();
-                    popupWindow = null;
-                }
-                mSchoolLevel = -1;
-                mGradLevel = -1;
-                mClassLevel = -1;
-            }
-
-        });
-
-        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-            @Override
-            public void onDismiss() {
-
-                //亮屏
-                screenBrighter();
-                mSchoolLevel = -1;
-                mGradLevel = -1;
-                mClassLevel = -1;
-                if (isJop) {
-                    isJop = false;
-                    Intent intent = new Intent(XZAndXQClassActivity.this, ClassManegerActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-        });
-
     }
 
-    private void addStandardClass2Service(LinearLayout layout_success) {
+    private void checkHaveClass(LinearLayout layout_success) {
+        String className = mSpinner1.getText().toString() + mSpinner2.getText().toString() + mSpinner3.getText().toString();
         StringBuffer url = new StringBuffer();
         url.append(AppleTreeUrl.sRootUrl)
-                .append(AppleTreeUrl.crateClass.PROTOCOL)
-                .append(AppleTreeUrl.crateClass.PARAMS_SCHOOL_ID)
+                .append(AppleTreeUrl.CheckHaveClass.PROTOCOL)
+                .append(AppleTreeUrl.CheckHaveClass.PARAMS_NAME)
+                .append(className + "&")
+                .append(AppleTreeUrl.CheckHaveClass.PARAMS_SCHOOL_ID + mSchoolID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new XZAndXQClassCallBack(CHECK_HAVE_CLASS, layout_success));
+
+
+
+        /*StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.CrateClass.PROTOCOL)
+                .append(AppleTreeUrl.CrateClass.PARAMS_SCHOOL_ID)
                 .append(mSchoolID + "&")
-                .append(AppleTreeUrl.crateClass.PARAMS_TYPE)
+                .append(AppleTreeUrl.CrateClass.PARAMS_TYPE)
                 .append(mClassType + "&")
                 .append(AppleTreeUrl.sSession + "=")
                 .append(SPUtils.getSession() + "&")
-                .append(AppleTreeUrl.crateClass.PARAMS_NAME)
-                .append(mSpinner1.getText().toString() + mSpinner2.getText().toString() + mSpinner3.getText().toString() + "&")
-                .append(AppleTreeUrl.crateClass.PARAMS_GRADE)
+                .append(AppleTreeUrl.CrateClass.PARAMS_NAME)
+                .append(className + "&")
+                .append(AppleTreeUrl.CrateClass.PARAMS_GRADE)
                 .append(String.valueOf(mSchoolLevel + mGradLevel) + "&")
-                .append(AppleTreeUrl.crateClass.PARAMS_BAN_JI)
+                .append(AppleTreeUrl.CrateClass.PARAMS_BAN_JI)
                 .append(String.valueOf(mClassLevel));
         Log.e(getClass().getSimpleName(), url.toString());
         OkHttpUtils
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(new XZAndXQClassCallBack(CREAT_CLASS, layout_success));
+                .execute(new XZAndXQClassCallBack(CREAT_CLASS, layout_success));*/
 
     }
 

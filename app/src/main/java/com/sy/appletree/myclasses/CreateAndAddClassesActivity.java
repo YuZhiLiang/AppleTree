@@ -47,12 +47,14 @@ public class CreateAndAddClassesActivity extends AppCompatActivity {
                 intent.putExtra("tag",1);
                 intent.putExtra("schoolID", mSchoolID);
                 startActivity(intent);
+                finish();
                 break;
             case R.id.xingQuclasses:
                 Intent intent1=new Intent(CreateAndAddClassesActivity.this,XZAndXQClassActivity.class);
                 intent1.putExtra("tag",2);
                 intent1.putExtra("schoolID", mSchoolID);
                 startActivity(intent1);
+                finish();
                 break;
             default:
                 break;

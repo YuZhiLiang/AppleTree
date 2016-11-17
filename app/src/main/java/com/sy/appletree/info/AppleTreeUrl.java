@@ -167,9 +167,17 @@ public final class AppleTreeUrl {
         public static final String PARAMS_CLASS_ID = "classId=";
     }
 
+    //检查班级是否存在
+    public static final class CheckHaveClass {
+        public static final String PROTOCOL = "schoolClass_app_checkHaveClass.action?";
+        public static final String PARAMS_NAME = "name=";
+        public static final String PARAMS_SCHOOL_ID = "schoolId=";
+    }
+
     //创建班级
-    public static final class crateClass {
+    public static final class CrateClass {
         public static final String PROTOCOL = "schoolClass_app_createClass.action?";
+        public static final String PROTOCOL_CLASS_IS_HAVE = "schoolClass_app_checkHaveClass.action?";
         public static final String PARAMS_SCHOOL_ID = "schoolId=";
         public static final String PARAMS_TYPE = "type=";
         public static final String PARAMS_GRADE = "grade=";

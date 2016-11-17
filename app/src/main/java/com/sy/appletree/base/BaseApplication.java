@@ -52,27 +52,4 @@ public class BaseApplication extends Application {
         return mContext;
     }
 
-    //    public void addActivity(BaseActivity activity) {
-//        mActivities.add(activity);
-//    }
-//
-//    public void close() {
-//        for (Activity activity : mActivities) {
-//            //Log.e("", "close:" + activity.getLocalClassName());
-//            if (activity != null) {
-//                activity.finish();
-//            }
-//
-//        }
-//    }
-//    public void removeActivity(Activity activity) {
-//        for (Activity ac : mActivities) {
-//            //Log.e("", "close:" + activity.getLocalClassName());
-//            if (ac.equals(activity)) {
-//                mActivities.remove(ac);
-//                break;
-//            }
-//        }
-//    }
-
 }

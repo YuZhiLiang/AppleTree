@@ -281,6 +281,7 @@ public class ChoosePlaceActivity extends BaseActivity {
         intent.putExtra("schoolID", String.valueOf(dataBean.getSchoolId()));
         Log.e(getClass().getSimpleName(), "拿到学校ID存入Intent， ID=" + String.valueOf(dataBean.getSchoolId()));
         startActivity(intent);
+        finish();
     }
 
     /**
