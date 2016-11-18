@@ -57,10 +57,21 @@ public final class AppleTreeUrl {
         public final static String PARAMS_SEARCH_VAL = "searchVal";
     }
 
+    //查询收藏列表
+    public static final class ListCollect {
+        public static final String PROTOCOL = "collect_app_listCollect.action?";
+    }
+
     //查询智库
     public static final class GetWisomLibList {
         public static final String PROTOCOL = "wisomLib_app_listWisomLib.action?";
         public static final String PARAMS_SEARCH_VAL = "searchVal";
+    }
+
+    //收藏智库
+    public static final class CollectWisomLib {
+        public static final String PROTOCOL = "wisomLib_app_collectWisomLib.action?";
+        public static final String PARAMS_COURSE_PKG_ID = "coursePackageId=";
     }
 
     //添加课程包
@@ -197,7 +208,7 @@ public final class AppleTreeUrl {
     }
 
     //获取学生信息
-    public static final class GetStudentInfo{
+    public static final class GetStudentInfo {
         public static final String PROTOCOL = "schoolClass_app_getStudentInfo.action?";
         public static final String PARAMS_STUDENT_ID = "studentId=";
     }
@@ -223,7 +234,15 @@ public final class AppleTreeUrl {
         public static final String PARAMS_STUDENT_ID = "studentId=";//ID
         public static final String PARAMS_STUDENT_NUM = "studentNumber=";//学号
         public static final String PARAMS_NAME = "name=";
+        public static final String PARAMS_CLASS_ID = "classId=";
         public static final String PARAMS_MOBILE = "mobile=";
+    }
+
+    //查询班级分组方案
+    public static final class GetClassGroup {
+        public static final String PROTOCOL = "group_app_getClassGroup.action?";
+        public static final String PARAMS_CLASS_ID = "classId=";
+
     }
 
 

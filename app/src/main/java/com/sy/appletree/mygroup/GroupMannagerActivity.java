@@ -33,7 +33,12 @@ import com.sy.appletree.base.BaseApplication;
 import com.sy.appletree.fragment.GroupEmptyFragment;
 import com.sy.appletree.fragment.GroupMannerFragment;
 import com.sy.appletree.homepage.MainActivity;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.utils.FenZuListener;
+import com.sy.appletree.utils.ToastUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +46,7 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
 
 public class GroupMannagerActivity extends AppCompatActivity implements GroupEmptyFragment.onGroupChangeListener {
 
@@ -75,15 +81,16 @@ public class GroupMannagerActivity extends AppCompatActivity implements GroupEmp
     private boolean yushe;
 
     private List<String> mStringList = new ArrayList<>();
+    private String mClassID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_mannager);
         ButterKnife.bind(this);
-//是否预设
-        yushe = getIntent().getBooleanExtra("yushe", false);
+        getDatafromIntent();
 
+        getDataFromService();
         for (int i = 0; i < 5; i++) {
             mList.add("小学" + i + "班");
         }
@@ -123,7 +130,7 @@ public class GroupMannagerActivity extends AppCompatActivity implements GroupEmp
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 if (position == 0) {
                     mCurrentPagerIsEmptry = true;
-                }else {
+                } else {
                     mCurrentPagerIsEmptry = false;
                 }
             }
@@ -158,6 +165,43 @@ public class GroupMannagerActivity extends AppCompatActivity implements GroupEmp
         mGroupGrid.setAdapter(mDaiFenAdapter);
         mGroupGrid.setOnItemClickListener(DFZItemclickListener);
 
+    }
+
+    private void getDatafromIntent() {
+        //是否预设,就是从班级管理进来的
+        Intent intent = getIntent();
+        yushe = intent.getBooleanExtra("yushe", false);
+        mClassID = intent.getStringExtra("classID");
+    }
+
+    private void getDataFromService() {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.GetClassGroup.PROTOCOL)
+                .append(AppleTreeUrl.GetClassGroup.PARAMS_CLASS_ID)
+                .append(mClassID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new GroupManagerCallBack());
+    }
+
+    class GroupManagerCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            ToastUtils.toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+        }
     }
 
     private void initFragment() {
@@ -451,7 +495,7 @@ public class GroupMannagerActivity extends AppCompatActivity implements GroupEmp
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             if (mCurrentPagerIsEmptry) {
                 Toast.makeText(BaseApplication.getContext(), "请选择一个分组", Toast.LENGTH_SHORT).show();
-            }else {
+            } else {
                 Toast.makeText(BaseApplication.getContext(), "点击了" + position, Toast.LENGTH_SHORT).show();
             }
         }

@@ -258,7 +258,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.menu_collect:
                 Intent intent5=new Intent(MainActivity.this, MyCollectionActivity.class);
                 startActivity(intent5);
-
                 break;
             //退出登录
             case R.id.menu_exit:

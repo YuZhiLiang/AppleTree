@@ -111,6 +111,7 @@ public class ClassManagerFragment extends Fragment {
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), GroupMannagerActivity.class);
                 intent.putExtra("yushe", true);
+                intent.putExtra("classID", mClassID);
                 startActivityForResult(intent, 100);
             }
         });

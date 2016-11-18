@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -172,9 +173,9 @@ public class TankFragment extends Fragment {
             Gson gson = new Gson();
             WisomLibListBean wisomLibListBean = gson.fromJson(response, WisomLibListBean.class);
             if (wisomLibListBean.getStatus().equals("y")) {
-                if(what.equals("init")) {
+                if (what.equals("init")) {
                     getDataFromServiceSuccess(wisomLibListBean);
-                }else {
+                } else {
                     referenceDataSuccess(wisomLibListBean);
                 }
 
@@ -205,7 +206,6 @@ public class TankFragment extends Fragment {
 
     private void toast(String message) {
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-
     }
 
     @Override
@@ -218,7 +218,6 @@ public class TankFragment extends Fragment {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.tank_search_btn:
-
                 Toast.makeText(getActivity(), "点击了搜索", Toast.LENGTH_SHORT).show();
                 break;
         }
@@ -266,6 +265,22 @@ public class TankFragment extends Fragment {
             viewHolder.kemu.setText(dataBean.getSubject());
             viewHolder.nianji.setText(dataBean.getUseGrade());
             viewHolder.shijian.setText(dataBean.getCreateDateStr());
+            //收藏
+            if (dataBean.getHavaCollect().equals("Y")) {
+                viewHolder.shoucang.setImageDrawable(getResources().getDrawable(R.mipmap.btn_icon_sc_s));
+                viewHolder.shoucang.setTag("Y");
+            } else {
+                viewHolder.shoucang.setImageDrawable(getResources().getDrawable(R.mipmap.btn_icon_sc_n));
+                viewHolder.shoucang.setTag("C");
+            }
+            viewHolder.shoucang.setTag(0, position);
+            viewHolder.shoucang.setOnClickListener(new onCollectClickListener());
+            //下载
+            if (dataBean.getAllowDownload().equals("Y")) {
+                viewHolder.xiazai.setTag("下载");
+            } else {
+                viewHolder.xiazai.setText("完成");
+            }
             return convertView;
         }
 
@@ -281,5 +296,31 @@ public class TankFragment extends Fragment {
 
 
         }
+    }
+
+    class onCollectClickListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            int position = (int) v.getTag(0);
+            WisomLibListBean.DataBean dataBean = mWisomBeans.get(position);
+            collcetionOrCancel(v, dataBean);
+        }
+    }
+
+    private void collcetionOrCancel(View v, WisomLibListBean.DataBean dataBean) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.CollectWisomLib.PARAMS_COURSE_PKG_ID)
+                .append(dataBean.getCourseId())
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+
+//        OkHttpUtils
+//                .get()
+//                .url(url.toString())
+//                .build()
+//                .execute();
     }
 }

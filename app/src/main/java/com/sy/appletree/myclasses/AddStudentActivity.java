@@ -30,6 +30,7 @@ import com.sy.appletree.base.BaseApplication;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.bean.StudentsBean;
 import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.ToastUtils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.MyGridView;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -141,11 +142,21 @@ public class AddStudentActivity extends AppCompatActivity {
                     paraseAddStudentResponse(response, gson);
                     break;
                 case 3:
-
+                    paraseEditStudentResponse(response, gson);
                     break;
                 case 4:
                     paraseGetStudentInfoResponse(response, gson);
                     break;
+            }
+        }
+
+        private void paraseEditStudentResponse(String response, Gson gson) {
+            Log.e(getClass().getSimpleName(), response);
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                upDateStudentSuccess();
+            } else {
+                ToastUtils.toast(numberVavlibleBean.getInfo());
             }
         }
 
@@ -166,7 +177,7 @@ public class AddStudentActivity extends AppCompatActivity {
 
         private void paraseGetStudentsResponse(String response, Gson gson) {
             Log.e(getClass().getSimpleName(), response);
-            if (!response.contains("")) {
+            if (!response.contains("[]")) {
                 StudentsBean studentsBean = gson.fromJson(response, StudentsBean.class);
                 if (studentsBean.getStatus().equals("y")) {
                     onGetStudentsFromServieSuccess(studentsBean.getData());
@@ -177,6 +188,11 @@ public class AddStudentActivity extends AppCompatActivity {
                 toast("该班级暂无学生");
             }
         }
+    }
+
+    private void upDateStudentSuccess() {
+        popupWindow.dismiss();
+        getDataFromService();
     }
 
     private void onAddStudentFailed(NumberVavlibleBean numberVavlibleBean) {
@@ -237,6 +253,7 @@ public class AddStudentActivity extends AppCompatActivity {
                 }
             }
         }
+        mStudentAdapter.notifyDataSetChanged();
         print();
     }
 
@@ -308,7 +325,7 @@ public class AddStudentActivity extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.base_left:
                 Intent intent = new Intent();
-                intent.putExtra("xuesheng", 50);
+                intent.putExtra("xuesheng", mStudentsBeans.size());
                 setResult(91, intent);
                 finish();
                 break;
@@ -317,6 +334,15 @@ public class AddStudentActivity extends AppCompatActivity {
                 openPopWindow();
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent();
+        intent.putExtra("xuesheng", mStudentsBeans.size());
+        setResult(91, intent);
+        finish();
+        super.onBackPressed();
     }
 
     public void openPopWindow() {
@@ -407,7 +433,28 @@ public class AddStudentActivity extends AppCompatActivity {
     }
 
     private void editStudent(String name, String studentID, String mobile, String serviceStudentID) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.UpdateStudent.PROTOCOL)
+                .append(AppleTreeUrl.UpdateStudent.PARAMS_NAME)
+                .append(name + "&")
+                .append(AppleTreeUrl.UpdateStudent.PARAMS_MOBILE)
+                .append(mobile + "&")
+                .append(AppleTreeUrl.UpdateStudent.PARAMS_STUDENT_ID)
+                .append(serviceStudentID + "&")
+                .append(AppleTreeUrl.UpdateStudent.PARAMS_STUDENT_NUM)
+                .append(studentID + "&")
+                .append(AppleTreeUrl.UpdateStudent.PARAMS_CLASS_ID)
+                .append(mClassID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
 
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new addStudentCallBack(EDIT_STUDENT));
     }
 
     private void getStudentInfoAndSetHint(EditText editText1, EditText editText2, EditText editText3, String studentID) {
