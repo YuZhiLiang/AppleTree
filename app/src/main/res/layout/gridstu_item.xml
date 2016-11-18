@@ -3,10 +3,11 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-    <Button
+    <TextView
+        android:gravity="center"
         android:id="@+id/stu_btn"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="40dp"
         android:textColor="@color/mGray"
         android:background="@drawable/select_stubg"/>
 </LinearLayout>

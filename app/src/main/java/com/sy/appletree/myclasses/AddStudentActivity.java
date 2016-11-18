@@ -4,13 +4,16 @@ import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,12 +27,10 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sy.appletree.R;
 import com.sy.appletree.base.BaseApplication;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.bean.StudentsBean;
 import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.utils.CharacterParser;
-import com.sy.appletree.utils.PinyinComparator;
-import com.sy.appletree.utils.SortModel;
-import com.sy.appletree.utils.StudentSortBean;
+import com.sy.appletree.utils.ToastUtils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.MyGridView;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -37,6 +38,7 @@ import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import butterknife.Bind;
@@ -57,36 +59,35 @@ public class AddStudentActivity extends AppCompatActivity {
     @Bind(R.id.student_list)
     ListView mStudentList;
 
-    private CharacterParser characterParser;
-    private List<SortModel> SourceDateList = new ArrayList<>();
-
-    private List<StudentSortBean> mStudentSortBeans = new ArrayList<>();//最终的数据源
-    private ArrayList<StudentsBean.DataBean> mStudentsBeens = new ArrayList<>();
+    private ArrayList<StudentsBean.DataBean> mStudentsBeans = new ArrayList<>();
+    private ArrayList<StudentsBean.DataBean> mStudentsBeansBackUps = new ArrayList<>();
+    private ArrayList<ArrayList<StudentsBean.DataBean>> mGroupList = new ArrayList<>();
 
     private StudentAdapter mStudentAdapter;
     private List<String> mList = new ArrayList<>();
     /**
      * 根据拼音来排列ListView里面的数据类
      */
-    private PinyinComparator pinyinComparator;
     private String mClassID;
     private int GET_STUDENT_LIST = 1;
     private int ADD_STUDENT = 2;
     private int EDIT_STUDENT = 3;
+    private int GET_STUDENT_INFO = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_student);
         ButterKnife.bind(this);
-        //实例化汉字转拼音类
-        characterParser = CharacterParser.getInstance();
-        pinyinComparator = new PinyinComparator();
         getIntentData();
         getDataFromService();
-        getData();
-        mStudentAdapter = new StudentAdapter(mStudentSortBeans);
+        initEvent();
+    }
+
+    private void initEvent() {
+        mStudentAdapter = new StudentAdapter();
         mStudentList.setAdapter(mStudentAdapter);
+        mStudentSearch.addTextChangedListener(new SearchStudentListener());
     }
 
     private void getDataFromService() {
@@ -108,9 +109,20 @@ public class AddStudentActivity extends AppCompatActivity {
 
     class addStudentCallBack extends StringCallback {
         int mEventType;
+        EditText name;
+        EditText studentID;
+        EditText mobile;
+
 
         public addStudentCallBack(int eventType) {
             this.mEventType = eventType;
+        }
+
+        public addStudentCallBack(int eventType, EditText name, EditText studentID, EditText mobile) {
+            this.mEventType = eventType;
+            this.name = name;
+            this.studentID = studentID;
+            this.mobile = mobile;
         }
 
         @Override
@@ -124,7 +136,7 @@ public class AddStudentActivity extends AppCompatActivity {
             Gson gson = new Gson();
             switch (mEventType) {
                 case 1:
-                    paraseGetStudentResponse(response, gson);
+                    paraseGetStudentsResponse(response, gson);
                     break;
                 case 2:
                     paraseAddStudentResponse(response, gson);
@@ -132,14 +144,26 @@ public class AddStudentActivity extends AppCompatActivity {
                 case 3:
 
                     break;
+                case 4:
+                    paraseGetStudentInfoResponse(response, gson);
+                    break;
             }
         }
 
-        private void paraseAddStudentResponse(String response, Gson gson) {
+        private void paraseGetStudentInfoResponse(String response, Gson gson) {
 
         }
 
-        private void paraseGetStudentResponse(String response, Gson gson) {
+        private void paraseAddStudentResponse(String response, Gson gson) {
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                onAddStudentSuccess();
+            }else {
+                onAddStudentFailed(numberVavlibleBean);
+            }
+        }
+
+        private void paraseGetStudentsResponse(String response, Gson gson) {
             StudentsBean studentsBean = gson.fromJson(response, StudentsBean.class);
             if (studentsBean.getStatus().equals("y")) {
                 onGetStudentsFromServieSuccess(studentsBean.getData());
@@ -149,11 +173,117 @@ public class AddStudentActivity extends AppCompatActivity {
         }
     }
 
+    private void onAddStudentFailed(NumberVavlibleBean numberVavlibleBean) {
+        ToastUtils.toast(numberVavlibleBean.getInfo());
+    }
+
+    private void onAddStudentSuccess() {
+        getDataFromService();
+        popupWindow.dismiss();
+    }
+
     private void onGetStudentsFromServieSuccess(List<StudentsBean.DataBean> data) {
-        if (!mStudentsBeens.isEmpty()) {
-            mStudentsBeens.clear();
+        if (!mStudentsBeans.isEmpty()) {
+            mStudentsBeans.clear();
         }
-        mStudentsBeens.addAll(data);
+        if (!mGroupList.isEmpty()) {
+            mGroupList.clear();
+        }
+        if (!data.isEmpty()) {
+            mStudentsBeans.addAll(data);
+            sortGroup();
+        }
+    }
+
+    //排序
+    private void sortGroup() {
+        Collections.sort(mStudentsBeans, new Comparator<StudentsBean.DataBean>() {
+            @Override
+            public int compare(StudentsBean.DataBean lhs, StudentsBean.DataBean rhs) {
+                return lhs.getStartChar().compareTo(rhs.getStartChar());
+            }
+        });
+        cuttingGroup();
+    }
+
+    //分组
+    private void cuttingGroup() {
+        if(!mGroupList.isEmpty()) {
+            mGroupList.clear();
+        }
+        for (int i = 0; i < mStudentsBeans.size(); i++) {
+            if (mGroupList.isEmpty()) {
+                ArrayList<StudentsBean.DataBean> studentStartCharList = new ArrayList<>();
+                studentStartCharList.add(mStudentsBeans.get(i));
+                mGroupList.add(studentStartCharList);
+            } else {
+                ArrayList<StudentsBean.DataBean> dataBeen = mGroupList.get(mGroupList.size() - 1);
+                String startChar = dataBeen.get(0).getStartChar();
+                String startChar1 = mStudentsBeans.get(i).getStartChar();
+                if (startChar.equals(startChar1)) {
+                    dataBeen.add(mStudentsBeans.get(i));
+                } else {
+                    ArrayList<StudentsBean.DataBean> studentStartCharList = new ArrayList<>();
+                    studentStartCharList.add(mStudentsBeans.get(i));
+                    mGroupList.add(studentStartCharList);
+                }
+            }
+        }
+        print();
+    }
+
+    //打印测试
+    private void print() {
+        for (ArrayList<StudentsBean.DataBean> dataBeen1 : mGroupList) {
+            for (StudentsBean.DataBean dataBean2 : dataBeen1) {
+                Log.e(dataBean2.getStartChar() + "=", dataBean2.getStudentName());
+            }
+        }
+    }
+
+    class SearchStudentListener implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            if (s.toString().length() == 0) {
+                Log.e(getClass().getSimpleName(), "检测到改动前");
+                mStudentsBeansBackUps.addAll(mStudentsBeans);
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Log.e(getClass().getSimpleName(), "检测到改动");
+            if (s.toString().trim().length() == 0) {
+                mStudentsBeans.clear();
+                mStudentsBeans.addAll(mStudentsBeansBackUps);
+                cuttingGroup();
+                mStudentAdapter.notifyDataSetChanged();
+            } else {
+                ArrayList<StudentsBean.DataBean> mSearchSchoolListBeans = new ArrayList<>();
+                for (StudentsBean.DataBean studentBean : mStudentsBeansBackUps) {
+                    if (studentBean.getStudentName().startsWith(s.toString())) {
+                        mSearchSchoolListBeans.add(studentBean);
+                    }
+                }
+                mStudentsBeans.clear();
+                mStudentsBeans.addAll(mSearchSchoolListBeans);
+                cuttingGroup();
+                mStudentAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            Log.e(getClass().getSimpleName(), "改动后");
+            if (s.toString().trim().length() == 0) {
+                mStudentsBeans.clear();
+                mStudentsBeans.addAll(mStudentsBeansBackUps);
+                mStudentsBeansBackUps.clear();
+                cuttingGroup();
+                mStudentAdapter.notifyDataSetChanged();
+            }
+        }
     }
 
     public void toast(String message) {
@@ -163,65 +293,6 @@ public class AddStudentActivity extends AppCompatActivity {
     private void getIntentData() {
         Intent intent = getIntent();
         mClassID = intent.getStringExtra("classID");
-    }
-
-    /**
-     * 所有学生的数据
-     */
-    private void getData() {
-        SourceDateList = filledData(getResources().getStringArray(R.array.date));
-        // 根据a-z进行排序源数据
-        Collections.sort(SourceDateList, pinyinComparator);
-        if (SourceDateList.size() > 1) {
-            for (int i = 0; i < SourceDateList.size() - 1; i++) {
-
-                int a = i + 1;
-                if (SourceDateList.get(i).getSortLetters().equals(SourceDateList.get(a).getSortLetters())) {
-                    mList.add(SourceDateList.get(i).getName());
-
-
-                } else {
-                    StudentSortBean studentSortBean = new StudentSortBean();
-                    studentSortBean.setLetter(SourceDateList.get(i).getSortLetters());
-                    mList.add(SourceDateList.get(i).getName());
-                    Log.e("对象", mList.size() + "");
-                    List<String> list = new ArrayList<>();
-                    list.addAll(mList);
-                    studentSortBean.setList(list);
-                    mStudentSortBeans.add(studentSortBean);
-                    mList.clear();
-                    Log.e("duixiang", studentSortBean.getList().toString());
-                }
-            }
-        }
-
-    }
-
-    private List<SortModel> filledData(String[] date) {
-        List<SortModel> mSortList = new ArrayList<>();
-
-        for (int i = 0; i < date.length; i++) {
-            SortModel sortModel = new SortModel();
-            sortModel.setName(date[i]);
-            //汉字转换成拼音
-            String pinyin = characterParser.getSelling(date[i]);
-            String sortString = pinyin.substring(0, 1).toUpperCase();
-
-            // 正则表达式，判断首字母是否是英文字母
-            if (sortString.matches("[A-Z]")) {
-                sortModel.setSortLetters(sortString.toUpperCase());
-            } else {
-                sortModel.setSortLetters("#");
-            }
-
-            mSortList.add(sortModel);
-        }
-        SortModel sortModel = new SortModel();
-        sortModel.setName("占位名");
-        sortModel.setSortLetters("#");
-        mSortList.add(sortModel);
-        return mSortList;
-
     }
 
     @OnClick({R.id.base_left, R.id.base_right})
@@ -248,7 +319,11 @@ public class AddStudentActivity extends AppCompatActivity {
     private View contentView;
     private PopupWindow popupWindow;
 
-    private void initPopWindow(final String tag) {
+    private void initPopWindow(String tag) {
+        initPopWindow(tag, null);
+    }
+
+    private void initPopWindow(final String tag, String studentID) {
         screenDimmed();//暗屏
 
         //加载弹出框的布局
@@ -276,6 +351,7 @@ public class AddStudentActivity extends AppCompatActivity {
             textView.setText("新增学生");
         } else if (tag.equals("edit")) {
             textView.setText("修改学生信息");
+            getStudentInfoAndSetHint(editText1, editText2, editText3, studentID);
         }
 
         save.setOnClickListener(new View.OnClickListener() {
@@ -321,7 +397,22 @@ public class AddStudentActivity extends AppCompatActivity {
 
             }
         });
+    }
 
+    private void getStudentInfoAndSetHint(EditText editText1, EditText editText2, EditText editText3, String studentID) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                /*.append(AppleTreeUrl.GetStudent.PROTOCOL)
+                .append(AppleTreeUrl.GetStudent.PARAMS_STUDENT_ID)*/
+                .append(studentID + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new addStudentCallBack(GET_STUDENT_INFO, editText1, editText2, editText3));
     }
 
     private void addStudent2Class(String name, String studentID, String mobile) {
@@ -361,25 +452,19 @@ public class AddStudentActivity extends AppCompatActivity {
 
     public class StudentAdapter extends BaseAdapter {
 
-        private List<StudentSortBean> mStudentSortBeans;
-
-        public StudentAdapter(List<StudentSortBean> studentSortBeans) {
-            mStudentSortBeans = studentSortBeans;
-        }
-
         @Override
         public int getCount() {
-            return mStudentSortBeans.size();//分组的数量
+            return mGroupList.size() == 0 ? 0 : mGroupList.size();//分组的数量
         }
 
         @Override
-        public Object getItem(int position) {
-            return null;
+        public ArrayList<StudentsBean.DataBean> getItem(int position) {
+            return mGroupList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -394,10 +479,10 @@ public class AddStudentActivity extends AppCompatActivity {
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            holder.mTextView.setText(mStudentSortBeans.get(position).getLetter());
-            List<String> list = mStudentSortBeans.get(position).getList();
-            MyGridAdapter myGridAdapter = new MyGridAdapter(list);
+            holder.mTextView.setText(mGroupList.get(position).get(0).getStartChar());
+            MyGridAdapter myGridAdapter = new MyGridAdapter(mGroupList.get(position));
             holder.mMyGridView.setAdapter(myGridAdapter);
+            holder.mMyGridView.setOnItemClickListener(new onStudentClickListener());
             Log.e("getview", "getView");
             return convertView;
         }
@@ -411,9 +496,9 @@ public class AddStudentActivity extends AppCompatActivity {
 
     public class MyGridAdapter extends BaseAdapter {
 
-        private List<String> mStringList;
+        private List<StudentsBean.DataBean> mStringList;
 
-        public MyGridAdapter(List<String> stringList) {
+        public MyGridAdapter(List<StudentsBean.DataBean> stringList) {
             mStringList = stringList;
         }
 
@@ -423,13 +508,13 @@ public class AddStudentActivity extends AppCompatActivity {
         }
 
         @Override
-        public Object getItem(int position) {
-            return null;
+        public StudentsBean.DataBean getItem(int position) {
+            return mStringList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return mStringList.get(position).getStudentId();
         }
 
         @Override
@@ -444,15 +529,23 @@ public class AddStudentActivity extends AppCompatActivity {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
 
-            viewHolder.mTextView.setText(mStringList.get(position));
-
+            viewHolder.mTextView.setText(mStringList.get(position).getStudentName());
+            viewHolder.mTextView.setTag(String.valueOf(mStringList.get(position).getStudentId()));
             return convertView;
         }
 
         class ViewHolder {
             TextView mTextView;
-
         }
     }
 
+    //学生条目的点击事件监听
+    class onStudentClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Log.e(getClass().getSimpleName(), "接收到点击事件");
+            initPopWindow("edit", String.valueOf(id));
+            openPopWindow();
+        }
+    }
 }

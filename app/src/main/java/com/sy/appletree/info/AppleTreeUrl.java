@@ -196,6 +196,12 @@ public final class AppleTreeUrl {
         public static final String PARAMS_CLASS_ID = "classId=";
     }
 
+    //获取学生信息
+//    public static final class GetStudents{
+        public static final String PROTOCOL = "schoolClass_app_getStudents.action?";
+        public static final String PARAMS_STUDENT_ID = "studentId=";
+//    }
+
     //退出班级
     public static final class QuitClass {
         public static final String PROTOCOL = "schoolClass_app_quitClass.action?";
@@ -210,5 +216,6 @@ public final class AppleTreeUrl {
         public static final String PARAMS_NAME = "name=";
         public static final String PARAMS_MOBILE = "mobile=";
     }
+
 
 }
