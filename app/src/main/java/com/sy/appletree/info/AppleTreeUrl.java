@@ -197,10 +197,10 @@ public final class AppleTreeUrl {
     }
 
     //获取学生信息
-//    public static final class GetStudents{
-        public static final String PROTOCOL = "schoolClass_app_getStudents.action?";
+    public static final class GetStudentInfo{
+        public static final String PROTOCOL = "schoolClass_app_getStudentInfo.action?";
         public static final String PARAMS_STUDENT_ID = "studentId=";
-//    }
+    }
 
     //退出班级
     public static final class QuitClass {
@@ -213,6 +213,15 @@ public final class AppleTreeUrl {
         public static final String PROTOCOL = "schoolClass_app_addStudent.action?";
         public static final String PARAMS_CLASS_ID = "classId=";
         public static final String PARAMS_STUDENT_NUM = "studentNumber=";
+        public static final String PARAMS_NAME = "name=";
+        public static final String PARAMS_MOBILE = "mobile=";
+    }
+
+    //添加学生
+    public static final class UpdateStudent {
+        public static final String PROTOCOL = "schoolClass_app_updateStudent.action?";
+        public static final String PARAMS_STUDENT_ID = "studentId=";//ID
+        public static final String PARAMS_STUDENT_NUM = "studentNumber=";//学号
         public static final String PARAMS_NAME = "name=";
         public static final String PARAMS_MOBILE = "mobile=";
     }

@@ -30,7 +30,6 @@ import com.sy.appletree.base.BaseApplication;
 import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.bean.StudentsBean;
 import com.sy.appletree.info.AppleTreeUrl;
-import com.sy.appletree.utils.ToastUtils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.MyGridView;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -155,26 +154,33 @@ public class AddStudentActivity extends AppCompatActivity {
         }
 
         private void paraseAddStudentResponse(String response, Gson gson) {
+
             NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
             if (numberVavlibleBean.getStatus().equals("y")) {
                 onAddStudentSuccess();
-            }else {
+            } else {
                 onAddStudentFailed(numberVavlibleBean);
+
             }
         }
 
         private void paraseGetStudentsResponse(String response, Gson gson) {
-            StudentsBean studentsBean = gson.fromJson(response, StudentsBean.class);
-            if (studentsBean.getStatus().equals("y")) {
-                onGetStudentsFromServieSuccess(studentsBean.getData());
+            Log.e(getClass().getSimpleName(), response);
+            if (!response.contains("")) {
+                StudentsBean studentsBean = gson.fromJson(response, StudentsBean.class);
+                if (studentsBean.getStatus().equals("y")) {
+                    onGetStudentsFromServieSuccess(studentsBean.getData());
+                } else {
+                    toast(studentsBean.getInfo());
+                }
             } else {
-                toast(studentsBean.getInfo());
+                toast("该班级暂无学生");
             }
         }
     }
 
     private void onAddStudentFailed(NumberVavlibleBean numberVavlibleBean) {
-        ToastUtils.toast(numberVavlibleBean.getInfo());
+        toast(numberVavlibleBean.getInfo());
     }
 
     private void onAddStudentSuccess() {
@@ -197,18 +203,20 @@ public class AddStudentActivity extends AppCompatActivity {
 
     //排序
     private void sortGroup() {
-        Collections.sort(mStudentsBeans, new Comparator<StudentsBean.DataBean>() {
-            @Override
-            public int compare(StudentsBean.DataBean lhs, StudentsBean.DataBean rhs) {
-                return lhs.getStartChar().compareTo(rhs.getStartChar());
-            }
-        });
-        cuttingGroup();
+        if (mStudentsBeans.size() != 0) {
+            Collections.sort(mStudentsBeans, new Comparator<StudentsBean.DataBean>() {
+                @Override
+                public int compare(StudentsBean.DataBean lhs, StudentsBean.DataBean rhs) {
+                    return lhs.getStartChar().compareTo(rhs.getStartChar());
+                }
+            });
+            cuttingGroup();
+        }
     }
 
     //分组
     private void cuttingGroup() {
-        if(!mGroupList.isEmpty()) {
+        if (!mGroupList.isEmpty()) {
             mGroupList.clear();
         }
         for (int i = 0; i < mStudentsBeans.size(); i++) {
@@ -323,7 +331,7 @@ public class AddStudentActivity extends AppCompatActivity {
         initPopWindow(tag, null);
     }
 
-    private void initPopWindow(final String tag, String studentID) {
+    private void initPopWindow(final String tag, final String ServiceStudentID) {
         screenDimmed();//暗屏
 
         //加载弹出框的布局
@@ -351,7 +359,6 @@ public class AddStudentActivity extends AppCompatActivity {
             textView.setText("新增学生");
         } else if (tag.equals("edit")) {
             textView.setText("修改学生信息");
-            getStudentInfoAndSetHint(editText1, editText2, editText3, studentID);
         }
 
         save.setOnClickListener(new View.OnClickListener() {
@@ -383,7 +390,7 @@ public class AddStudentActivity extends AppCompatActivity {
                     addStudent2Class(name, studentID, mobile);
                 } else if (tag.equals("edit")) {
                     //修改接口
-
+                    editStudent(name, studentID, mobile, ServiceStudentID);//第一个ID是学号，第二个ID是服务器上学生的ID
                 }
 
             }
@@ -397,6 +404,10 @@ public class AddStudentActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void editStudent(String name, String studentID, String mobile, String serviceStudentID) {
+
     }
 
     private void getStudentInfoAndSetHint(EditText editText1, EditText editText2, EditText editText3, String studentID) {
@@ -449,7 +460,6 @@ public class AddStudentActivity extends AppCompatActivity {
         AddStudentActivity.this.getWindow().setAttributes(params);
     }
 
-
     public class StudentAdapter extends BaseAdapter {
 
         @Override
@@ -459,6 +469,9 @@ public class AddStudentActivity extends AppCompatActivity {
 
         @Override
         public ArrayList<StudentsBean.DataBean> getItem(int position) {
+            if (mGroupList.isEmpty()) {
+                return null;
+            }
             return mGroupList.get(position);
         }
 
@@ -543,7 +556,7 @@ public class AddStudentActivity extends AppCompatActivity {
     class onStudentClickListener implements AdapterView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            Log.e(getClass().getSimpleName(), "接收到点击事件");
+            Log.e(getClass().getSimpleName(), "接收到点击事件,学生得ID是：" + id);
             initPopWindow("edit", String.valueOf(id));
             openPopWindow();
         }
