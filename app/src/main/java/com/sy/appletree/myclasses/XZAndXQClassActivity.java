@@ -48,6 +48,10 @@ import java.util.List;
 
 import okhttp3.Call;
 
+/**
+ * 还有已经存在班级时的逻辑没有写完，主要是classID的回传问题和创建兴趣班时的界面显示问题
+ */
+
 public class XZAndXQClassActivity extends BaseActivity {
 
     private int mClassTypeTag;
@@ -80,6 +84,8 @@ public class XZAndXQClassActivity extends BaseActivity {
     private String mClassType;
     public EditText mIntersertClassName;
     private Button mButton1;
+    private TextView mAlreatyExist;
+    private boolean checkHave = false;
 
     @Override
     protected void findViews() {
@@ -128,6 +134,7 @@ public class XZAndXQClassActivity extends BaseActivity {
     class XZAndXQClassCallBack extends StringCallback {
         int eventType;
         LinearLayout mLayout;
+        String mClassName;
 
         public XZAndXQClassCallBack(int eventType) {
             this.eventType = eventType;
@@ -136,6 +143,12 @@ public class XZAndXQClassActivity extends BaseActivity {
         public XZAndXQClassCallBack(int eventType, LinearLayout layout_success) {
             this.eventType = eventType;
             this.mLayout = layout_success;
+        }
+
+        public XZAndXQClassCallBack(int eventType, LinearLayout layout_success, String className) {
+            this.eventType = eventType;
+            this.mLayout = layout_success;
+            this.mClassName = className;
         }
 
         @Override
@@ -158,7 +171,7 @@ public class XZAndXQClassActivity extends BaseActivity {
                     parasCreatClassResponse(response, gson, mLayout);
                     break;
                 case 4:
-                    parasCheckHaveClassResponse(response, gson, mLayout);
+                    parasCheckHaveClassResponse(response, gson, mLayout, mClassName);
                     break;
             }
 
@@ -166,8 +179,39 @@ public class XZAndXQClassActivity extends BaseActivity {
     }
 
     //检查是不是存在该班级
-    private void parasCheckHaveClassResponse(String response, Gson gson, LinearLayout layout) {
+    private void parasCheckHaveClassResponse(String response, Gson gson, LinearLayout layout, String className) {
         Log.e(getClass().getSimpleName(), response);
+        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+        if (numberVavlibleBean.getStatus().equals("n")) {
+            //不存在这个班级可以创建
+            StringBuffer url = new StringBuffer();
+            url.append(AppleTreeUrl.sRootUrl)
+                    .append(AppleTreeUrl.CrateClass.PROTOCOL)
+                    .append(AppleTreeUrl.CrateClass.PARAMS_SCHOOL_ID)
+                    .append(mSchoolID + "&")
+                    .append(AppleTreeUrl.CrateClass.PARAMS_TYPE)
+                    .append(mClassType + "&")
+                    .append(AppleTreeUrl.sSession + "=")
+                    .append(SPUtils.getSession() + "&")
+                    .append(AppleTreeUrl.CrateClass.PARAMS_NAME)
+                    .append(className + "&")
+                    .append(AppleTreeUrl.CrateClass.PARAMS_GRADE)
+                    .append(String.valueOf(mSchoolLevel + mGradLevel) + "&")
+                    .append(AppleTreeUrl.CrateClass.PARAMS_BAN_JI)
+                    .append(String.valueOf(mClassLevel));
+            Log.e(getClass().getSimpleName(), url.toString());
+            OkHttpUtils
+                    .get()
+                    .url(url.toString())
+                    .build()
+                    .execute(new XZAndXQClassCallBack(CREAT_CLASS, layout, className));
+        }else {
+            //存在这个班级直接加入
+            mAlreatyExist.setVisibility(View.VISIBLE);
+            checkHave = true;
+            mButton1.setText("加入");
+            mButton1.setTag(String.valueOf(numberVavlibleBean.getData()));
+        }
     }
 
     //解析创建班级的请求
@@ -290,6 +334,24 @@ public class XZAndXQClassActivity extends BaseActivity {
                 .execute(new XZAndXQClassCallBack(JOIN2CLASS));
     }
 
+    //加入班级
+    private void client2ServiceForJoin2Class(String CalssID) {
+        String classID = CalssID;
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.JointClass.PROTOCOL)
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession() + "&")
+                .append(AppleTreeUrl.JointClass.PARAMS_CLASS_ID)
+                .append(classID);
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new XZAndXQClassCallBack(JOIN2CLASS));
+    }
+
 
     private void initView() {
         //设置标题
@@ -380,10 +442,19 @@ public class XZAndXQClassActivity extends BaseActivity {
             public void onClick(View v) {
                 if (mClassType.equals("A")) {
                     Log.e(getClass().getSimpleName(), "创建标准班级时Btn的点击事件");
-                    creatStandardClassBtnClickEvent();
+                    if (!checkHave) {
+                        creatStandardClassBtnClickEvent();
+                    }else {
+                        client2ServiceForJoin2Class(mButton1.getTag().toString());
+                    }
                 } else {
                     Log.e(getClass().getSimpleName(), "创建兴趣班级时Btn的点击事件");
-                    creatIntersertBtnClickEvent();
+                    if (!checkHave) {
+                        creatIntersertBtnClickEvent();
+                    }else {
+                        client2ServiceForJoin2Class(mButton1.getTag().toString());
+                    }
+
                 }
 
             }
@@ -426,6 +497,7 @@ public class XZAndXQClassActivity extends BaseActivity {
                     popupWindow.dismiss();
                     popupWindow = null;
                 }
+                checkHave = false;
                 mSchoolLevel = -1;
                 mGradLevel = -1;
                 mClassLevel = -1;
@@ -439,6 +511,7 @@ public class XZAndXQClassActivity extends BaseActivity {
 
                 //亮屏
                 screenBrighter();
+                checkHave = false;
                 mSchoolLevel = -1;
                 mGradLevel = -1;
                 mClassLevel = -1;
@@ -474,12 +547,14 @@ public class XZAndXQClassActivity extends BaseActivity {
 
     private void initCreatIntersertClassPopWin(View contentView) {
         mIntersertClassName = (EditText) contentView.findViewById(R.id.interest_class_name);
+        mAlreatyExist = (TextView) contentView.findViewById(R.id.yicunzai);
     }
 
     private void initCreatStndardClassPopWin(View contentView) {
         mSpinner1 = (TextView) contentView.findViewById(R.id.spinner1);
         mSpinner2 = (TextView) contentView.findViewById(R.id.spinner2);
         mSpinner3 = (TextView) contentView.findViewById(R.id.spinner3);
+        mAlreatyExist = (TextView) contentView.findViewById(R.id.yicunzai);
 
         mSpinner1.addTextChangedListener(new TextChangeListener() {
             @Override
@@ -502,6 +577,8 @@ public class XZAndXQClassActivity extends BaseActivity {
         mSpinner1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mAlreatyExist.setVisibility(View.INVISIBLE);
+                checkHave = false;
                 if (!isExpand) {
                     dialog = new Dialog(XZAndXQClassActivity.this);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -559,6 +636,8 @@ public class XZAndXQClassActivity extends BaseActivity {
         mSpinner2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mAlreatyExist.setVisibility(View.INVISIBLE);
+                checkHave = false;
                 if (!isExpand) {
                     dialog = new Dialog(XZAndXQClassActivity.this);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -642,6 +721,8 @@ public class XZAndXQClassActivity extends BaseActivity {
         mSpinner3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mAlreatyExist.setVisibility(View.INVISIBLE);
+                checkHave = false;
                 if (!isExpand) {
                     dialog = new Dialog(XZAndXQClassActivity.this);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -715,31 +796,6 @@ public class XZAndXQClassActivity extends BaseActivity {
                 .url(url.toString())
                 .build()
                 .execute(new XZAndXQClassCallBack(CHECK_HAVE_CLASS, layout_success));
-
-
-
-        /*StringBuffer url = new StringBuffer();
-        url.append(AppleTreeUrl.sRootUrl)
-                .append(AppleTreeUrl.CrateClass.PROTOCOL)
-                .append(AppleTreeUrl.CrateClass.PARAMS_SCHOOL_ID)
-                .append(mSchoolID + "&")
-                .append(AppleTreeUrl.CrateClass.PARAMS_TYPE)
-                .append(mClassType + "&")
-                .append(AppleTreeUrl.sSession + "=")
-                .append(SPUtils.getSession() + "&")
-                .append(AppleTreeUrl.CrateClass.PARAMS_NAME)
-                .append(className + "&")
-                .append(AppleTreeUrl.CrateClass.PARAMS_GRADE)
-                .append(String.valueOf(mSchoolLevel + mGradLevel) + "&")
-                .append(AppleTreeUrl.CrateClass.PARAMS_BAN_JI)
-                .append(String.valueOf(mClassLevel));
-        Log.e(getClass().getSimpleName(), url.toString());
-        OkHttpUtils
-                .get()
-                .url(url.toString())
-                .build()
-                .execute(new XZAndXQClassCallBack(CREAT_CLASS, layout_success));*/
-
     }
 
     /**

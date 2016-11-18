@@ -5,28 +5,36 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.NumberVavlibleBean;
+import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.myclasses.AddStudentActivity;
-import com.sy.appletree.myclasses.ClassManegerActivity;
 import com.sy.appletree.mygroup.GroupMannagerActivity;
+import com.sy.appletree.utils.ToastUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
+
+import org.greenrobot.eventbus.EventBus;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import okhttp3.Call;
+
+import static com.sy.appletree.R.id.yushe_number;
 
 /**
  * Created by Administrator on 2016/10/27.
@@ -46,7 +54,7 @@ public class ClassManagerFragment extends Fragment {
     TextView mChengyuanNumber;
     @Bind(R.id.bianji)
     LinearLayout mBianji;
-    @Bind(R.id.yushe_number)
+    @Bind(yushe_number)
     TextView mYusheNumber;
     @Bind(R.id.yushe)
     LinearLayout mYushe;
@@ -54,14 +62,16 @@ public class ClassManagerFragment extends Fragment {
     ImageView mClose;
     private View mView;
     private String mXuexiao1;
-    private String mBanji1;
+    private String mClassName;
+    private String mSchoolName;
+    private String mClassID;
+    private String mStudentNum;
+    private String mGroupNum;
+    private String mClassType;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mBanji1 = getArguments().getString("banji");
-        }
         getData();//
     }
 
@@ -69,8 +79,14 @@ public class ClassManagerFragment extends Fragment {
      * 请求班级数据
      */
     private void getData() {
-
-
+        if (getArguments() != null) {
+            mClassName = getArguments().getString("className");
+            mSchoolName = getArguments().getString("schoolName");
+            mClassID = getArguments().getString("classID");
+            mStudentNum = getArguments().getString("studentNum");
+            mGroupNum = getArguments().getString("groupNum");
+            mClassType = getArguments().getString("classType");
+        }
     }
 
     @Nullable
@@ -78,23 +94,23 @@ public class ClassManagerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mView = inflater.inflate(R.layout.classview, container, false);
         ButterKnife.bind(this, mView);
-
+        initView();
 
         //编辑
         mBianji.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(getActivity(), AddStudentActivity.class);
-
-                startActivityForResult(intent,90);
+                Intent intent = new Intent(getActivity(), AddStudentActivity.class);
+                intent.putExtra("classID", mClassID);
+                startActivityForResult(intent, 90);
             }
         });
         //预设分组
         mYushe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(getActivity(), GroupMannagerActivity.class);
-                intent.putExtra("yushe",true);
+                Intent intent = new Intent(getActivity(), GroupMannagerActivity.class);
+                intent.putExtra("yushe", true);
                 startActivityForResult(intent, 100);
             }
         });
@@ -102,21 +118,30 @@ public class ClassManagerFragment extends Fragment {
         mClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                initPopWindow();
+                openPopWindow();
             }
         });
         return mView;
     }
 
+    private void initView() {
+        mXuexiao.setText(mSchoolName);
+        mBanji.setText(mClassName);
+        mChengyuanNumber.setText(mStudentNum);
+        mYusheNumber.setText(mGroupNum);
+        mBanjiImg.setImageResource(R.mipmap.class_img);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode==100&&resultCode==101){
+        if (requestCode == 100 && resultCode == 101) {
             int fenzushu = data.getIntExtra("fenzushu", 0);
-            mYusheNumber.setText(fenzushu+"");
-        }else if (requestCode==90&&resultCode==91){
+            mYusheNumber.setText(fenzushu + "");
+        } else if (requestCode == 90 && resultCode == 91) {
             int xuesheng = data.getIntExtra("xuesheng", 0);
-            mChengyuanNumber.setText(xuesheng+"");
+            mChengyuanNumber.setText(xuesheng + "");
         }
     }
 
@@ -124,8 +149,10 @@ public class ClassManagerFragment extends Fragment {
         //底部显示
         popupWindow.showAtLocation(contentView, Gravity.CENTER, 0, 0);
     }
+
     private View contentView;
     private PopupWindow popupWindow;
+
     private void initPopWindow() {
         screenDimmed();//暗屏
 
@@ -145,10 +172,33 @@ public class ClassManagerFragment extends Fragment {
         popupWindow.setTouchable(true);
         //进入退出的动画
         popupWindow.setAnimationStyle(R.style.mypopwindow_anim_style);
-        Button abandon= (Button) contentView.findViewById(R.id.abandon);
-        Button save= (Button) contentView.findViewById(R.id.save);
-        TextView school= (TextView) contentView.findViewById(R.id.pop_school);
-        TextView classes= (TextView) contentView.findViewById(R.id.pop_banji);
+        Button abandon = (Button) contentView.findViewById(R.id.abandon);
+        Button save = (Button) contentView.findViewById(R.id.save);
+        TextView school = (TextView) contentView.findViewById(R.id.pop_school);
+        TextView classes = (TextView) contentView.findViewById(R.id.pop_banji);
+        school.setText(mSchoolName);
+        classes.setText(mClassName);
+
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                StringBuffer url = new StringBuffer();
+                url.append(AppleTreeUrl.sRootUrl)
+                        .append(AppleTreeUrl.QuitClass.PROTOCOL)
+                        .append(AppleTreeUrl.QuitClass.PARAMS_CLASS_ID)
+                        .append(mClassID + "&")
+                        .append(AppleTreeUrl.sSession + "=")
+                        .append(SPUtils.getSession());
+                Log.e(getClass().getSimpleName(), url.toString());
+
+                OkHttpUtils
+                        .get()
+                        .url(url.toString())
+                        .build()
+                        .execute(new classManagerCallBack());
+
+            }
+        });
 
         abandon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +220,32 @@ public class ClassManagerFragment extends Fragment {
             }
         });
 
+    }
+
+    class classManagerCallBack extends StringCallback {
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            ToastUtils.toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                onQuitClassSuccess();
+            }else {
+                ToastUtils.toast(numberVavlibleBean.getInfo());
+            }
+        }
+    }
+
+    private void onQuitClassSuccess() {
+        popupWindow.dismiss();
+        ToastUtils.toast("退出成功");
+        EventBus.getDefault().post(mClassID);
     }
 
     private void screenBrighter() {

@@ -3,6 +3,8 @@ package com.sy.appletree.myclasses;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,7 +17,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.sy.appletree.R;
-import com.sy.appletree.adapter.ClassPagerAdapter;
 import com.sy.appletree.base.BaseApplication;
 import com.sy.appletree.bean.ClasssSummaryBean;
 import com.sy.appletree.fragment.ClassManagerFragment;
@@ -24,9 +25,14 @@ import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.login_register.ChoosePlaceActivity;
 import com.sy.appletree.utils.Const;
 import com.sy.appletree.utils.SharePreferenceUtils;
+import com.sy.appletree.utils.ToastUtils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +59,6 @@ public class ClassManegerActivity extends AppCompatActivity {
 
     private String School;
     private String Banji;
-    private ClassManagerFragment mClassManagerFragment1, mClassManagerFragment2, mClassManagerFragment3;
     private List<Fragment> mFragmentList = new ArrayList<>();
     private ArrayList<ClasssSummaryBean.DataBean> mClassSummaryBeans = new ArrayList<>();
     private ClassPagerAdapter mClassPagerAdapter;
@@ -67,13 +72,6 @@ public class ClassManegerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_class_maneger);
         ButterKnife.bind(this);
         initData();
-        mClassManagerFragment1 = setPager();
-        mClassManagerFragment2 = setPager();
-        mClassManagerFragment3 = setPager();
-        mFragmentList.add(mClassManagerFragment1);
-        mFragmentList.add(mClassManagerFragment2);
-        mFragmentList.add(mClassManagerFragment3);
-
 
         //获取屏幕当前密度系数
         float density = getResources().getDisplayMetrics().density;
@@ -83,7 +81,7 @@ public class ClassManegerActivity extends AppCompatActivity {
         addDotView(mFragmentList.size());
 
 
-        mClassPagerAdapter = new ClassPagerAdapter(getSupportFragmentManager(), mFragmentList);
+        mClassPagerAdapter = new ClassPagerAdapter(getSupportFragmentManager());
         mClassmanagerPager.setAdapter(mClassPagerAdapter);
         //Viewpager 的 父View收到的事件 传递给 viewpager
         mViewpagerBox.setOnTouchListener(new View.OnTouchListener() {
@@ -119,11 +117,21 @@ public class ClassManegerActivity extends AppCompatActivity {
 
     }
 
-    private ClassManagerFragment setPager() {
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    private ClassManagerFragment setPager(ClasssSummaryBean.DataBean classSummaryBean) {
         ClassManagerFragment classManagerFragment = new ClassManagerFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("xuexiao", School);
-        bundle.putString("banji", Banji);
+        bundle.putString("schoolName", classSummaryBean.getSchoolName());
+        bundle.putString("className", classSummaryBean.getClassName());
+        bundle.putString("classID", String.valueOf(classSummaryBean.getClassId()));
+        bundle.putString("studentNum" ,String.valueOf(classSummaryBean.getStudentNum()));
+        bundle.putString("groupNum", String.valueOf(classSummaryBean.getGroupNum()));
+        bundle.putString("classType", classSummaryBean.getClassType());
         classManagerFragment.setArguments(bundle);
         return classManagerFragment;
     }
@@ -179,6 +187,16 @@ public class ClassManegerActivity extends AppCompatActivity {
             mClassSummaryBeans.clear();
         }
         mClassSummaryBeans.addAll(data);
+        creatFragmentAndAdd2Activity();
+    }
+
+    private void creatFragmentAndAdd2Activity() {
+        for (ClasssSummaryBean.DataBean classSummaryBean : mClassSummaryBeans) {
+            mFragmentList.add(setPager(classSummaryBean));
+            mClassPagerAdapter.notifyDataSetChanged();
+            mLinearLayout.removeAllViews();
+            addDotView(mFragmentList.size());
+        }
     }
 
     private void toast(String message) {
@@ -201,17 +219,54 @@ public class ClassManegerActivity extends AppCompatActivity {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(String classID) {
+        ToastUtils.toast("拿到响应");
+        getDataFromService();
+    };
+
     @OnClick({R.id.base_left, R.id.base_right})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.base_left:
                 Intent intent1 = new Intent(ClassManegerActivity.this, MainActivity.class);
                 startActivity(intent1);
+                finish();
                 break;
             case R.id.base_right:
                 Intent intent = new Intent(ClassManegerActivity.this, ChoosePlaceActivity.class);
+                intent.putExtra("tag", 1);
                 startActivity(intent);
+                finish();
                 break;
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    class ClassPagerAdapter extends FragmentPagerAdapter {
+
+        public void addFragment(List<Fragment> FragmentList) {
+            mFragmentList.addAll(FragmentList);
+            notifyDataSetChanged();
+        }
+
+        public ClassPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
         }
     }
 }
