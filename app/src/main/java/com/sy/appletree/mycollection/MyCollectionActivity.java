@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
@@ -19,13 +17,17 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.CollectionListBean;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.preparelessons.BeiKeActivity;
 import com.sy.appletree.swipemenulistview.SwipeMenu;
 import com.sy.appletree.swipemenulistview.SwipeMenuCreator;
 import com.sy.appletree.swipemenulistview.SwipeMenuItem;
 import com.sy.appletree.swipemenulistview.SwipeMenuListView;
+import com.sy.appletree.utils.Number2Textutils;
 import com.sy.appletree.utils.ToastUtils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -49,22 +51,9 @@ public class MyCollectionActivity extends AppCompatActivity {
     RelativeLayout mBaseRight;
     @Bind(R.id.collection_list)
     SwipeMenuListView mCollectionList;
-
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    int arg1 = msg.arg1;
-                    mStrings.remove(mStrings.get(arg1));
-                    CollectionAdapter collectionAdapter = new CollectionAdapter(mStrings);
-                    mCollectionList.setAdapter(collectionAdapter);
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
+    final int INIT_DATA = 1;
+    final int DELETE_COLLECTION_ITEM = 2;
+    final int DOWNLOAD_FILE = 3;
 
     SwipeMenuCreator creator = new SwipeMenuCreator() {
 
@@ -93,7 +82,7 @@ public class MyCollectionActivity extends AppCompatActivity {
     }
 
     private CollectionAdapter mCollectionAdapter;
-    private List<String> mStrings = new ArrayList<>();
+    private ArrayList<CollectionListBean.DataBean> mCollectionListBeans = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,11 +90,8 @@ public class MyCollectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_my_collection);
         ButterKnife.bind(this);
         getDataFromeService();
-        for (int i = 0; i < 5; i++) {
-            mStrings.add("时间" + i);
-        }
         mCollectionList.setMenuCreator(creator);
-        mCollectionAdapter = new CollectionAdapter(mStrings);
+        mCollectionAdapter = new CollectionAdapter();
         mCollectionList.setAdapter(mCollectionAdapter);
 
 
@@ -115,11 +101,7 @@ public class MyCollectionActivity extends AppCompatActivity {
         mCollectionList.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
             public void onMenuItemClick(int position, SwipeMenu menu, int index) {
-
-                Message message = new Message();
-                message.what = 1;
-                message.arg1 = position;
-                mHandler.sendMessage(message);
+                DeleteCollection(position);
 
             }
         });
@@ -130,18 +112,43 @@ public class MyCollectionActivity extends AppCompatActivity {
         mCollectionList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CollectionListBean.DataBean dataBean = mCollectionListBeans.get(position);
                 Intent intent = new Intent(MyCollectionActivity.this, BeiKeActivity.class);
-                intent.putExtra("yuLan", true);
-                //判断教材为自定义，自定义的话就是false，否则为true.
-                intent.putExtra("单选", false);
-                intent.putExtra("科目", "收藏科目");
-                intent.putExtra("教材", "收藏教材");
-                intent.putExtra("年级", "收藏年级");
-                intent.putExtra("课程", "收藏课程");
+                intent.putExtra("yuLan", false);
+                if (dataBean.getVersion().equals("9")) {
+                    //是自定义教材
+                    intent.putExtra("isSingle", false);//判断教材为自定义，自定义的话就是false，否则为true.
+                } else {
+                    //是标准教材
+                    intent.putExtra("isSingle", true);//判断教材为自定义，非自定义的话就是rue，教材多选
+                }
+
+                intent.putExtra("Name", dataBean.getName());
+                intent.putExtra("Subject", Number2Textutils.paraseSubject(dataBean.getSubject()));
+                intent.putExtra("Book", Number2Textutils.paraseVersion(dataBean.getVersion()));
+                intent.putExtra("Grad", Number2Textutils.paraseGrade(dataBean.getUseGrade()));
+                intent.putExtra("courseID", String.valueOf(dataBean.getCourseId()));
+                intent.putExtra("isNewCourse", false);
                 startActivity(intent);
 
             }
         });
+    }
+
+    private void DeleteCollection(int position) {
+        StringBuffer url = new StringBuffer();
+        url.append(AppleTreeUrl.sRootUrl)
+                .append(AppleTreeUrl.DeleteCollect.PROTOCOL)
+                .append(AppleTreeUrl.DeleteCollect.PARAMS_ID)
+                .append(mCollectionListBeans.get(position).getCollectId() + "&")
+                .append(AppleTreeUrl.sSession + "=")
+                .append(SPUtils.getSession());
+        Log.e(getClass().getSimpleName(), url.toString());
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new CollectionCallBack(DELETE_COLLECTION_ITEM, position));
     }
 
     private void getDataFromeService() {
@@ -156,10 +163,21 @@ public class MyCollectionActivity extends AppCompatActivity {
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(new CollectionCallBack());
+                .execute(new CollectionCallBack(INIT_DATA));
     }
 
     class CollectionCallBack extends StringCallback {
+        int mEventType;
+        int position;
+
+        public CollectionCallBack(int eventType) {
+            mEventType = eventType;
+        }
+
+        public CollectionCallBack(int eventType, int position) {
+            this.mEventType = eventType;
+            this.position = position;
+        }
 
         @Override
         public void onError(Call call, Exception e, int id) {
@@ -169,7 +187,48 @@ public class MyCollectionActivity extends AppCompatActivity {
         @Override
         public void onResponse(String response, int id) {
             Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            switch (mEventType) {
+                case 1:
+                    initDataFromService(response, gson);
+                    break;
+                case 2:
+                    ParaseDeleteCollectionResponse(response, gson, position);
+                    break;
+            }
         }
+
+        private void ParaseDeleteCollectionResponse(String response, Gson gson, int position) {
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                onDeleteCollectionSuccess(position);
+            } else {
+                ToastUtils.toast(numberVavlibleBean.getInfo());
+            }
+        }
+
+        private void initDataFromService(String response, Gson gson) {
+            CollectionListBean collectionListBean = gson.fromJson(response, CollectionListBean.class);
+            if (collectionListBean.getStatus().equals("y")) {
+                initDataFromServiceSuccess(collectionListBean.getData());
+            } else {
+                ToastUtils.toast(collectionListBean.getInfo());
+            }
+        }
+    }
+
+    private void onDeleteCollectionSuccess(int position) {
+        mCollectionListBeans.remove(position);
+        ToastUtils.toast("删除成功");
+        mCollectionAdapter.notifyDataSetChanged();
+    }
+
+    private void initDataFromServiceSuccess(List<CollectionListBean.DataBean> data) {
+        if (!mCollectionListBeans.isEmpty()) {
+            mCollectionListBeans.clear();
+        }
+        mCollectionListBeans.addAll(data);
+        mCollectionAdapter.notifyDataSetChanged();
     }
 
     @OnClick(R.id.base_left)
@@ -180,25 +239,22 @@ public class MyCollectionActivity extends AppCompatActivity {
 
     public class CollectionAdapter extends BaseAdapter {
 
-        private List<String> mlist;
-
-        public CollectionAdapter(List<String> mlist) {
-            this.mlist = mlist;
-        }
-
         @Override
         public int getCount() {
-            return mlist.size();
+            return mCollectionListBeans.isEmpty() ? 0 : mCollectionListBeans.size();
         }
 
         @Override
-        public Object getItem(int position) {
-            return null;
+        public CollectionListBean.DataBean getItem(int position) {
+            if (mCollectionListBeans.isEmpty()) {
+                return null;
+            }
+            return mCollectionListBeans.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -213,16 +269,28 @@ public class MyCollectionActivity extends AppCompatActivity {
                 viewHolder.nianji = (TextView) convertView.findViewById(R.id.tank_nianji);
                 viewHolder.jiaocai = (TextView) convertView.findViewById(R.id.tank_banben);
                 viewHolder.shijian = (TextView) convertView.findViewById(R.id.tank_shijian);
-                viewHolder.tigong = (TextView) convertView.findViewById(R.id.tank_tigong);
                 viewHolder.shoucang = (ImageView) convertView.findViewById(R.id.tank_collection);
-
-
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            viewHolder.shoucang.setVisibility(View.GONE);
-            viewHolder.shijian.setText("" + mlist.get(position));
+
+            CollectionListBean.DataBean dataBean = mCollectionListBeans.get(position);
+
+            viewHolder.kemu.setText(Number2Textutils.paraseSubject(dataBean.getSubject()).substring(0, 1));
+            if (dataBean.getAllowDownload().equals("Y")) {
+                //可以下载
+                viewHolder.xiazai.setText("下载");
+            } else {
+                //已经下载完成
+                viewHolder.xiazai.setText("完成");
+            }
+            viewHolder.mingcheng.setText(dataBean.getName());
+            viewHolder.nianji.setText(Number2Textutils.paraseGrade(dataBean.getUseGrade()));
+            viewHolder.jiaocai.setText(Number2Textutils.paraseVersion(dataBean.getSubject()));
+            viewHolder.shijian.setText(dataBean.getCreateDateStr());
+            viewHolder.shoucang.setVisibility(View.VISIBLE);
+            viewHolder.shoucang.setImageDrawable(getResources().getDrawable(R.mipmap.btn_icon_sc_s));
             return convertView;
         }
 
@@ -233,10 +301,8 @@ public class MyCollectionActivity extends AppCompatActivity {
             TextView nianji;
             TextView jiaocai;
             TextView shijian;
-            TextView tigong;
             ImageView shoucang;
-
-
         }
     }
+
 }

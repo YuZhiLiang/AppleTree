@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -90,6 +90,9 @@ public class CourseFragment extends Fragment {
 
     private MainActivity.MyOnClickListener mMyOnClickListener;
     private MainActivity.OCListener mOCListener;
+    private KeChengAdapter mKeChengAdapter;
+    private ArrayList<CoursePkgListBean.DataBean> mCourseBeans = new ArrayList<>();
+    private ArrayList<CoursePkgListBean.DataBean> mCourseBeansBackups = new ArrayList<>();
 
     public void setOCListener(MainActivity.OCListener OCListener) {
         mOCListener = OCListener;
@@ -98,23 +101,6 @@ public class CourseFragment extends Fragment {
     public void setMyOnClickListener(MainActivity.MyOnClickListener myOnClickListener) {
         mMyOnClickListener = myOnClickListener;
     }
-
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    int arg1 = msg.arg1;
-                    mCourseBeans.remove(mCourseBeans.get(arg1));
-                    mKeChengAdapter = new KeChengAdapter();
-                    mCourseList.setAdapter(mKeChengAdapter);
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-
 
     SwipeMenuCreator creator = new SwipeMenuCreator() {
 
@@ -146,10 +132,6 @@ public class CourseFragment extends Fragment {
             menu.addMenuItem(deleteItem);
         }
     };
-
-    private KeChengAdapter mKeChengAdapter;
-    private ArrayList<CoursePkgListBean.DataBean> mCourseBeans = new ArrayList<>();
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -207,13 +189,23 @@ public class CourseFragment extends Fragment {
                 //主页第一页的条目被点击跳转到具体的备课页面
                 Intent intent = new Intent(getActivity(), BeiKeActivity.class);
                 CoursePkgListBean.DataBean dataBean = mCourseBeans.get(position);
+
+                /*mYuLan = intent.getBooleanExtra("yuLan", false);//是不是预览
+                mDanxuan = intent.getBooleanExtra("isSingle", true);//是不是标准教材（非多选）
+                kecheng = intent.getStringExtra("Name");////课程包名字
+                kemu = intent.getStringExtra("Subject");//科目
+                jiaocai = intent.getStringExtra("Book");//哪个版本
+                nianji = intent.getStringExtra("Grad");//年级
+                mID = intent.getStringExtra("courseID");//课程包的ID
+                mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的*/
+
                 intent.putExtra("yuLan", false);
                 intent.putExtra("isSingle", true);
                 intent.putExtra("Name", dataBean.getName());
                 intent.putExtra("Subject", dataBean.getSubject());
                 intent.putExtra("Book", dataBean.getVersion());
                 intent.putExtra("Grad", dataBean.getUseGrade());
-                intent.putExtra("ID", String.valueOf(dataBean.getCourseId()));
+                intent.putExtra("courseID", String.valueOf(dataBean.getCourseId()));
                 intent.putExtra("isNewCourse", false);
                 startActivity(intent);
             }
@@ -236,7 +228,6 @@ public class CourseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), AddLessonsActivity3.class);
-
                 startActivity(intent);
             }
         });
@@ -398,13 +389,13 @@ public class CourseFragment extends Fragment {
 
     private void initEvent() {
         //光标可见
-        mCourseSearch.setOnClickListener(new View.OnClickListener() {
+        /*mCourseSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mCourseSearch.setCursorVisible(true);
             }
-        });
-
+        });*/
+        mCourseSearch.addTextChangedListener(new CourseSearchWatcher());
 
         //个人中心
         mBaseLeft.setOnClickListener(new View.OnClickListener() {
@@ -498,6 +489,47 @@ public class CourseFragment extends Fragment {
             TextView jiaocai;
             TextView shijian;
 
+        }
+    }
+
+    class CourseSearchWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            Log.e(getClass().getSimpleName(), "检测到变化前 = " + s.toString());
+            if (s.toString().length() == 0) {
+                mCourseBeansBackups.addAll(mCourseBeans);
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            Log.e(getClass().getSimpleName(), "检测到变化 = " + s.toString());
+            if (s.toString().trim().length() == 0) {
+                mCourseBeans.clear();
+                mCourseBeans.addAll(mCourseBeansBackups);
+            }else {
+                ArrayList<CoursePkgListBean.DataBean> mSearchPkgListBeans = new ArrayList<>();
+                for (CoursePkgListBean.DataBean PkgListBean : mCourseBeansBackups) {
+                    if (PkgListBean.getName().startsWith(s.toString())) {
+                        Log.e(getClass().getSimpleName(), "PkgListBean.getName() = " + PkgListBean.getName());
+                        mSearchPkgListBeans.add(PkgListBean);
+                    }
+                }
+                mCourseBeans.clear();
+                mCourseBeans.addAll(mSearchPkgListBeans);
+            }
+            mKeChengAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            Log.e(getClass().getSimpleName(), "检测到变化后 = " + s.toString());
+            if (s.toString().trim().length() == 0) {
+                mCourseBeans.clear();
+                mCourseBeans.addAll(mCourseBeansBackups);
+                mCourseBeansBackups.clear();
+                mKeChengAdapter.notifyDataSetChanged();
+            }
         }
     }
 

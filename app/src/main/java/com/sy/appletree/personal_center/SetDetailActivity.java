@@ -2,6 +2,8 @@ package com.sy.appletree.personal_center;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -12,12 +14,22 @@ import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.sy.appletree.R;
+import com.sy.appletree.bean.NumberVavlibleBean;
+import com.sy.appletree.info.AppleTreeUrl;
+import com.sy.appletree.utils.ToastUtils;
+import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.sy.appletree.views.CircleImageView;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
+
+import static com.sy.appletree.R.id.detail_name_txt;
 
 /**
  * 个人中心各个页面
@@ -33,7 +45,7 @@ public class SetDetailActivity extends AppCompatActivity {
     TextView mSetTitle;
     @Bind(R.id.base_right)
     RelativeLayout mBaseRight;
-    @Bind(R.id.detail_name_txt)
+    @Bind(detail_name_txt)
     EditText mDetailNameTxt;
     @Bind(R.id.detail_clear)
     ImageButton mDetailClear;
@@ -71,6 +83,11 @@ public class SetDetailActivity extends AppCompatActivity {
     CircleImageView mDetailAboutIcon;
     @Bind(R.id.detail_about)
     LinearLayout mDetailAbout;
+    final int CHANGE_NAME = 1;
+    final int CHANGE_SEX = 2;
+    final int CHANGE_EMAIL = 3;
+    final int CHANGE_MOBILE = 4;
+    final int CHANGE_PASS_WORD = 5;
 
 
     private String TAG = "";
@@ -124,12 +141,106 @@ public class SetDetailActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.base_right:
+                //点击保存判断当前设置的意图，之前那个傻逼程序员，服了他，这种写法真他妈第一次见坑爹啊
+                switch (TAG) {
+                    case "name":
+                        setName();
+                        break;
+                    case "sex":
 
+                        break;
+                    case "email":
+
+                        break;
+                    case "phone":
+
+                        break;
+                    case "pwd":
+
+                        break;
+                    case "about":
+
+                        break;
+                }
 
                 break;
             case R.id.detail_clear:
                 mDetailNameTxt.setText("");
                 break;
         }
+    }
+
+    private void setName() {
+        String name = mDetailNameTxt.getText().toString().trim();
+        if (!TextUtils.isEmpty(name)) {
+            StringBuffer url = new StringBuffer();
+            url.append(AppleTreeUrl.sRootUrl)
+                    .append(AppleTreeUrl.ChangeName.PROTOCOL)
+                    .append(AppleTreeUrl.ChangeName.PARAMS_NAME)
+                    .append(name + "&")
+                    .append(AppleTreeUrl.sSession + "=")
+                    .append(SPUtils.getSession());
+            SetDetailCallBack setDetailCallBack = new SetDetailCallBack(CHANGE_NAME);
+            clientService(url, setDetailCallBack);
+        } else {
+            ToastUtils.toast("请输入姓名");
+        }
+    }
+
+    private void clientService(StringBuffer url, SetDetailCallBack setDetailCallBack) {
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(setDetailCallBack);
+    }
+
+    class SetDetailCallBack extends StringCallback {
+        int eventType;
+
+        public SetDetailCallBack(int eventType) {
+            this.eventType = eventType;
+        }
+
+        @Override
+        public void onError(Call call, Exception e, int id) {
+            ToastUtils.toast("网络错误");
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            Log.e(getClass().getSimpleName(), response);
+            Gson gson = new Gson();
+            switch (eventType) {
+                case 1:
+                    paraseChangeNameResponse(response, gson);
+                    break;
+                case 2:
+
+                    break;
+                case 3:
+
+                    break;
+                case 4:
+
+                    break;
+                case 5:
+
+                    break;
+            }
+        }
+
+        private void paraseChangeNameResponse(String response, Gson gson) {
+            NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+            if (numberVavlibleBean.getStatus().equals("y")) {
+                onChangeNameSuccess();
+            }else {
+                ToastUtils.toast(numberVavlibleBean.getInfo());
+            }
+        }
+    }
+
+    private void onChangeNameSuccess() {
+        finish();
     }
 }

@@ -21,4 +21,5 @@
     <item name="search_city" type="id"/>
     <item name="search_city_edit" type="id"/>
     <item name="confrim" type="id"/>
+    <item name="shou_can" type="id"/>
 </resources>

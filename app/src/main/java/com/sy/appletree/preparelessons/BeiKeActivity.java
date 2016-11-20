@@ -91,7 +91,7 @@ public class BeiKeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_bei_ke);
 
         ButterKnife.bind(this);
-        getChuanZhi();
+        getDataFromIntent();
         setView();
         setFootViewAndOnclickListener();
         getData();
@@ -196,17 +196,13 @@ public class BeiKeActivity extends AppCompatActivity {
      */
     private void setView() {
         if (mDanxuan) {
-            String substring = kemu.substring(0, 1);
-            mBkKemu.setText(substring);
-            mBkName.setText(kecheng);
-            mBkNianji.setText(nianji);
-            mBkJiaocai.setText(jiaocai);
+            mBkKemu.setText(kecheng);
         } else {
             mBkKemu.setText("综");
-            mBkName.setText(kecheng);
-            mBkNianji.setText(nianji);
-            mBkJiaocai.setText(jiaocai);
         }
+        mBkName.setText(kecheng);
+        mBkNianji.setText(nianji);
+        mBkJiaocai.setText(jiaocai);
 
         //智库开启改变一些值
         if (mYuLan) {
@@ -216,7 +212,7 @@ public class BeiKeActivity extends AppCompatActivity {
         }
     }
 
-    private void getChuanZhi() {
+    private void getDataFromIntent() {
         Intent intent = getIntent();
         mYuLan = intent.getBooleanExtra("yuLan", false);//是不是预览
         mDanxuan = intent.getBooleanExtra("isSingle", true);//是不是标准教材（非多选）
@@ -224,8 +220,9 @@ public class BeiKeActivity extends AppCompatActivity {
         kemu = intent.getStringExtra("Subject");//科目
         jiaocai = intent.getStringExtra("Book");//哪个版本
         nianji = intent.getStringExtra("Grad");//年级
-        mID = intent.getStringExtra("ID");//课程包的ID
+        mID = intent.getStringExtra("courseID");//课程包的ID
         mIsNewCourse = intent.getBooleanExtra("isNewCourse", false);//是不是新创建的
+        Log.e(getClass().getSimpleName(), "获取Intent的值mID + =" + mID);
     }
 
     @OnClick({R.id.base_left, R.id.base_right})

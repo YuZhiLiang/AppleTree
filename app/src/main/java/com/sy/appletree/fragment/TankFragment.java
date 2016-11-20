@@ -4,6 +4,8 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,9 +25,11 @@ import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.sy.appletree.R;
 import com.sy.appletree.base.WisomLibListBean;
+import com.sy.appletree.bean.NumberVavlibleBean;
 import com.sy.appletree.homepage.MainActivity;
 import com.sy.appletree.info.AppleTreeUrl;
 import com.sy.appletree.preparelessons.BeiKeActivity;
+import com.sy.appletree.utils.Number2Textutils;
 import com.sy.appletree.utils.http_about_utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -55,9 +59,14 @@ public class TankFragment extends Fragment {
     @Bind(R.id.zhiku_list)
     PullToRefreshListView mZhikuList;
     private View mView;
+    final int INIT_DATA = 1;
+    final int REFLASH_DATA = 2;
+    final int COLLECT = 3;
+    final int CANCEL_COLLECT = 4;
 
     private TankAdapter mTankAdapter;
     private ArrayList<WisomLibListBean.DataBean> mWisomBeans = new ArrayList<>();
+    private ArrayList<WisomLibListBean.DataBean> mWisomBeansBackups = new ArrayList<>();
 
     private MainActivity.MyOnClickListener mMyOnClickListener;
 
@@ -105,19 +114,21 @@ public class TankFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), BeiKeActivity.class);
 
                 WisomLibListBean.DataBean dataBean = mWisomBeans.get(position - 1);
+                Log.e(getClass().getSimpleName(), "pkgID = " + dataBean.getCourseId());
                 intent.putExtra("yuLan", true);//是不是预览
                 intent.putExtra("isSingle", true);//是不是标准教材（非多选）
                 intent.putExtra("Name", dataBean.getName());//课程包名字
-                intent.putExtra("Subject", dataBean.getSubject());//科目
-                intent.putExtra("Book", dataBean.getVersion());//哪个版本
-                intent.putExtra("Grad", dataBean.getUseGrade());//年级
-                intent.putExtra("ID", dataBean.getCourseId());//课程包的ID
+                intent.putExtra("Subject", Number2Textutils.paraseSubject(dataBean.getSubject()));//科目
+                intent.putExtra("Book", Number2Textutils.paraseVersion(dataBean.getVersion()));//哪个版本
+                intent.putExtra("Grad", Number2Textutils.paraseGrade(dataBean.getUseGrade()));//年级
+                intent.putExtra("courseID", String.valueOf(dataBean.getCourseId()));//课程包的ID
                 intent.putExtra("isNewCourse", false);//是不是新创建的
                 startActivity(intent);
             }
         });
 
         mZhikuList.setOnRefreshListener(new ZKOnRefreshListener());
+        mTankSearch.addTextChangedListener(new TankFragmentSearchWatch());
     }
 
     class ZKOnRefreshListener implements PullToRefreshBase.OnRefreshListener {
@@ -138,7 +149,7 @@ public class TankFragment extends Fragment {
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(new TankFragmentStringCallBack("refresh"));
+                .execute(new TankFragmentStringCallBack(REFLASH_DATA));
 
     }
 
@@ -152,14 +163,20 @@ public class TankFragment extends Fragment {
                 .get()
                 .url(url.toString())
                 .build()
-                .execute(new TankFragmentStringCallBack("init"));
+                .execute(new TankFragmentStringCallBack(INIT_DATA));
     }
 
     class TankFragmentStringCallBack extends StringCallback {
-        String what;
+        int eventType;
+        ImageView v;
 
-        public TankFragmentStringCallBack(String what) {
-            this.what = what;
+        public TankFragmentStringCallBack(int eventType) {
+            this.eventType = eventType;
+        }
+
+        public TankFragmentStringCallBack(int eventType, ImageView v) {
+            this.eventType = eventType;
+            this.v = v;
         }
 
         @Override
@@ -171,36 +188,71 @@ public class TankFragment extends Fragment {
         @Override
         public void onResponse(String response, int id) {
             Gson gson = new Gson();
-            WisomLibListBean wisomLibListBean = gson.fromJson(response, WisomLibListBean.class);
-            if (wisomLibListBean.getStatus().equals("y")) {
-                if (what.equals("init")) {
-                    getDataFromServiceSuccess(wisomLibListBean);
-                } else {
-                    referenceDataSuccess(wisomLibListBean);
-                }
+            switch (eventType) {
+                case 1://初始化数据
+                    getDataFromServiceSuccess(response, gson);
+                    break;
+                case 2://刷新数据
+                    referenceDataSuccess(response, gson);
+                    break;
+                case 3://收藏
+                    collcetionGetResultFromService(response, gson, v);
+                    break;
+                case 4://取消收藏
+                    collcetionGetResultFromService(response, gson, v);
+                    break;
 
-            } else {
-                toast(wisomLibListBean.getInfo());
             }
-
-
         }
     }
 
-    private void referenceDataSuccess(WisomLibListBean wisomLibListBean) {
-        if (wisomLibListBean.getData() != null) {
-            mWisomBeans.clear();
-            mWisomBeans.addAll(wisomLibListBean.getData());
-            mTankAdapter.notifyDataSetChanged();
-            mZhikuList.onRefreshComplete();
+    private void collcetionGetResultFromService(String response, Gson gson, ImageView v) {
+        Log.e(getClass().getSimpleName(), response);
+        NumberVavlibleBean numberVavlibleBean = gson.fromJson(response, NumberVavlibleBean.class);
+        if (numberVavlibleBean.getStatus().equals("y")) {
+            onCollectSuccess(v);
+        } else {
+            toast(numberVavlibleBean.getInfo());
         }
     }
 
-    private void getDataFromServiceSuccess(WisomLibListBean wisomLibListBean) {
-        if (wisomLibListBean.getData() != null) {
-            mWisomBeans.addAll(wisomLibListBean.getData());
-            mTankAdapter.notifyDataSetChanged();
+    private void onCollectSuccess(ImageView v) {
+        String tag = (String) v.getTag();
+        int position = (int) v.getTag(R.id.shou_can);
+        WisomLibListBean.DataBean dataBean = mWisomBeans.get(position);
+        //收藏
+        v.setImageDrawable(getResources().getDrawable(R.mipmap.btn_icon_sc_s));
+        v.setTag("Y");
+        dataBean.setHavaCollect("Y");
+    }
+
+    private void referenceDataSuccess(String response, Gson gson) {
+        WisomLibListBean wisomLibListBean = gson.fromJson(response, WisomLibListBean.class);
+        if (wisomLibListBean.getStatus().equals("y")) {
+            if (wisomLibListBean.getData() != null) {
+                mWisomBeans.clear();
+                mWisomBeans.addAll(wisomLibListBean.getData());
+                mTankAdapter.notifyDataSetChanged();
+                mZhikuList.onRefreshComplete();
+            }
+        } else {
+            toast(wisomLibListBean.getInfo());
         }
+
+    }
+
+    private void getDataFromServiceSuccess(String response, Gson gson) {
+        Log.e(getClass().getSimpleName(), response);
+        WisomLibListBean wisomLibListBean = gson.fromJson(response, WisomLibListBean.class);
+        if (wisomLibListBean.getStatus().equals("y")) {
+            if (wisomLibListBean.getData() != null) {
+                mWisomBeans.addAll(wisomLibListBean.getData());
+                mTankAdapter.notifyDataSetChanged();
+            }
+        } else {
+            toast(wisomLibListBean.getInfo());
+        }
+
 
     }
 
@@ -253,7 +305,6 @@ public class TankFragment extends Fragment {
                 viewHolder.nianji = (TextView) convertView.findViewById(R.id.tank_nianji);
                 viewHolder.jiaocai = (TextView) convertView.findViewById(R.id.tank_banben);
                 viewHolder.shijian = (TextView) convertView.findViewById(R.id.tank_shijian);
-                viewHolder.tigong = (TextView) convertView.findViewById(R.id.tank_tigong);
                 viewHolder.shoucang = (ImageView) convertView.findViewById(R.id.tank_collection);
                 convertView.setTag(viewHolder);
             } else {
@@ -261,9 +312,9 @@ public class TankFragment extends Fragment {
             }
             WisomLibListBean.DataBean dataBean = mWisomBeans.get(position);
             viewHolder.mingcheng.setText(dataBean.getName());
-            viewHolder.jiaocai.setText(dataBean.getVersion());
-            viewHolder.kemu.setText(dataBean.getSubject());
-            viewHolder.nianji.setText(dataBean.getUseGrade());
+            viewHolder.jiaocai.setText(Number2Textutils.paraseVersion(dataBean.getVersion()));
+            viewHolder.kemu.setText(Number2Textutils.paraseSubject(dataBean.getSubject()).substring(0, 1));
+            viewHolder.nianji.setText(Number2Textutils.paraseGrade(dataBean.getUseGrade()));
             viewHolder.shijian.setText(dataBean.getCreateDateStr());
             //收藏
             if (dataBean.getHavaCollect().equals("Y")) {
@@ -273,7 +324,7 @@ public class TankFragment extends Fragment {
                 viewHolder.shoucang.setImageDrawable(getResources().getDrawable(R.mipmap.btn_icon_sc_n));
                 viewHolder.shoucang.setTag("C");
             }
-            viewHolder.shoucang.setTag(0, position);
+            viewHolder.shoucang.setTag(R.id.shou_can, position);
             viewHolder.shoucang.setOnClickListener(new onCollectClickListener());
             //下载
             if (dataBean.getAllowDownload().equals("Y")) {
@@ -298,29 +349,82 @@ public class TankFragment extends Fragment {
         }
     }
 
+    class TankFragmentSearchWatch implements TextWatcher {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            if (s.toString().length() == 0) {
+                mWisomBeansBackups.addAll(mWisomBeans);
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (s.toString().trim().length() == 0) {
+                mWisomBeans.clear();
+                mWisomBeans.addAll(mWisomBeansBackups);
+                mTankAdapter.notifyDataSetChanged();
+            }else {
+                ArrayList<WisomLibListBean.DataBean> mSearchWisomBeans = new ArrayList<>();
+                for (WisomLibListBean.DataBean WisomBean : mWisomBeansBackups) {
+                    if (WisomBean.getName().startsWith(s.toString())) {
+                        mSearchWisomBeans.add(WisomBean);
+                    }
+                }
+                mWisomBeans.clear();
+                mWisomBeans.addAll(mSearchWisomBeans);
+                mTankAdapter.notifyDataSetChanged();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (s.toString().trim().length() == 0) {
+                mWisomBeans.clear();
+                mWisomBeans.addAll(mWisomBeansBackups);
+                mWisomBeansBackups.clear();
+                mTankAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
     class onCollectClickListener implements View.OnClickListener {
 
         @Override
         public void onClick(View v) {
-            int position = (int) v.getTag(0);
+            int position = (int) v.getTag(R.id.shou_can);
             WisomLibListBean.DataBean dataBean = mWisomBeans.get(position);
-            collcetionOrCancel(v, dataBean);
+            collcetionOrCancel(v, dataBean, position);
         }
     }
 
-    private void collcetionOrCancel(View v, WisomLibListBean.DataBean dataBean) {
+    private void collcetionOrCancel(View v, WisomLibListBean.DataBean dataBean, int position) {
         StringBuffer url = new StringBuffer();
-        url.append(AppleTreeUrl.sRootUrl)
-                .append(AppleTreeUrl.CollectWisomLib.PARAMS_COURSE_PKG_ID)
-                .append(dataBean.getCourseId())
-                .append(AppleTreeUrl.sSession + "=")
-                .append(SPUtils.getSession());
-        Log.e(getClass().getSimpleName(), url.toString());
+        if (v.getTag().equals("Y")) {
+            //之前收藏了，取消收藏
+            url.append(AppleTreeUrl.sRootUrl)
+                    .append(AppleTreeUrl.DeleteCollect.PROTOCOL)
+                    .append(AppleTreeUrl.DeleteCollect.PARAMS_ID);
+//                    .append(dataBean.ge)
+            toast("暂不支持此处取消收藏，请前往收藏列表");
+        } else {
+            //之前没收藏，收藏
+            url.append(AppleTreeUrl.sRootUrl)
+                    .append(AppleTreeUrl.CollectWisomLib.PROTOCOL)
+                    .append(AppleTreeUrl.CollectWisomLib.PARAMS_COURSE_PKG_ID)
+                    .append(dataBean.getCourseId() + "&")
+                    .append(AppleTreeUrl.sSession + "=")
+                    .append(SPUtils.getSession());
+            Log.e(getClass().getSimpleName(), url.toString());
+            ciientServiceForCollectOrCancel(COLLECT, (ImageView) v, url);
+        }
+    }
 
-//        OkHttpUtils
-//                .get()
-//                .url(url.toString())
-//                .build()
-//                .execute();
+    private void ciientServiceForCollectOrCancel(int eventType, ImageView v, StringBuffer url) {
+        OkHttpUtils
+                .get()
+                .url(url.toString())
+                .build()
+                .execute(new TankFragmentStringCallBack(CANCEL_COLLECT, v));
     }
 }

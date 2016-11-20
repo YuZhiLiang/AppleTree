@@ -50,6 +50,43 @@ public final class AppleTreeUrl {
         public final static String PARAMS_PASSWORD = "password";
     }
 
+    //设置用户头像
+    public static final class ChangePhoto {
+        public final static String PROTOCOL = "fileUpload_app_changePhoto.action?";
+        public final static String PARAMS_FILE = "file=";
+    }
+
+    //设置用户名称
+    public static final class ChangeName {
+        public final static String PROTOCOL = "user_app_changeName.action?";
+        public final static String PARAMS_NAME = "name=";
+    }
+
+    //设置用户性别
+    public static final class ChangeSex {
+        public final static String PROTOCOL = "user_app_changeSex.action?";
+        public final static String PARAMS_SEX= "sex=";
+    }
+
+    //设置用户邮箱
+    public static final class Changemail {
+        public final static String PROTOCOL = "user_app_changeEmail.action?";
+        public final static String PARAMS_EMAIL= "email=";
+    }
+
+    //设置用户手机号
+    public static final class ChangMobile {
+        public final static String PROTOCOL = "user_app_changeMobile.action?";
+        public final static String PARAMS_MOBILE= "mobile=";
+    }
+
+    //设置用户手机号
+    public static final class ChangPassword {
+        public final static String PROTOCOL = "user_app_changePassword.action?";
+        public final static String PARAMS_OLD_PASS_WORD= "oldPassword=";
+        public final static String PARAMS_PASS_WORD= "password=";
+    }
+
     //查询课程
     public static class GetCoursePackage {
         public final static String PROTOCOL = "course_app_getCoursePackage.action?";
@@ -243,6 +280,12 @@ public final class AppleTreeUrl {
         public static final String PROTOCOL = "group_app_getClassGroup.action?";
         public static final String PARAMS_CLASS_ID = "classId=";
 
+    }
+
+    //查询班级分组方案
+    public static final class DeleteCollect {
+        public static final String PROTOCOL = "collect_app_deleteCollect.action?";
+        public static final String PARAMS_ID = "id=";
     }
 
 
